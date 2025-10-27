@@ -1,0 +1,4 @@
+org.springframework.test.context.ContextCustomizerFactory = \
+    com.tyse.scrutiny.micro.divipol.config.\
+    SqlTestContainersSpringContextCustomizerFactory,com.tyse.scrutiny.micro.\
+    divipol.config.KafkaTestContainersSpringContextCustomizerFactory
