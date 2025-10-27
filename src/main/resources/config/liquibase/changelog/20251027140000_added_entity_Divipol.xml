@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Added the entity Divipol.
+        Tabla de división política que contiene información de departamentos, municipios, zonas y puestos de votación.
+    -->
+    <changeSet id="20251027140000-1" author="jhipster">
+        <createTable tableName="divipol">
+            <column name="iddivipol" type="integer">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_divipol"/>
+            </column>
+            <column name="clase" type="char(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coddepto" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="codmipio" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="codzona" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="codpuesto" type="varchar(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nomdepto" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="nommipio" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="nompuesto" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="nummesas" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="potfemenino" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="potmasculino" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="pottotal" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="jal" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="nomjal" type="varchar(30)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="indicador" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expandida" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="direccion" type="varchar(60)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="cordenadas" type="point">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

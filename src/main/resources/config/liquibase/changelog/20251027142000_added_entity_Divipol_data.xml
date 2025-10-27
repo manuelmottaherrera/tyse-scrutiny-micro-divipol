@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Load initial data for Divipol entity.
+        Carga los datos iniciales de división política (18,016 registros).
+
+        Nota: No se puede usar loadData directo porque la columna 'cordenadas' es de tipo POINT de PostgreSQL
+        y requiere conversión explícita. Se usa una tabla auxiliar para cargar desde CSV y luego
+        se insertan los datos con conversión apropiada del tipo point.
+    -->
+
+    <!-- Crear tabla auxiliar para cargar el CSV -->
+    <changeSet id="20251027142000-1" author="jhipster">
+        <createTable tableName="divipol_load">
+            <column name="iddivipol" type="integer"/>
+            <column name="clase" type="char(1)"/>
+            <column name="coddepto" type="integer"/>
+            <column name="codmipio" type="integer"/>
+            <column name="codzona" type="integer"/>
+            <column name="codpuesto" type="varchar(2)"/>
+            <column name="nomdepto" type="varchar(50)"/>
+            <column name="nommipio" type="varchar(50)"/>
+            <column name="nompuesto" type="varchar(100)"/>
+            <column name="nummesas" type="integer"/>
+            <column name="potfemenino" type="integer"/>
+            <column name="potmasculino" type="integer"/>
+            <column name="pottotal" type="integer"/>
+            <column name="jal" type="integer"/>
+            <column name="nomjal" type="varchar(30)"/>
+            <column name="indicador" type="integer"/>
+            <column name="expandida" type="integer"/>
+            <column name="direccion" type="varchar(60)"/>
+            <column name="cordenadas_text" type="text"/>
+        </createTable>
+        <rollback></rollback>
+    </changeSet>
+
+    <!-- Cargar datos desde CSV a tabla auxiliar -->
+    <changeSet id="20251027142000-2" author="jhipster">
+        <loadData
+            file="config/liquibase/data/divipol_data.csv"
+            separator=","
+            tableName="divipol_load"
+            usePreparedStatements="true"
+            relativeToChangelogFile="false">
+            <column name="iddivipol" type="numeric"/>
+            <column name="clase" type="string"/>
+            <column name="coddepto" type="numeric"/>
+            <column name="codmipio" type="numeric"/>
+            <column name="codzona" type="numeric"/>
+            <column name="codpuesto" type="string"/>
+            <column name="nomdepto" type="string"/>
+            <column name="nommipio" type="string"/>
+            <column name="nompuesto" type="string"/>
+            <column name="nummesas" type="numeric"/>
+            <column name="potfemenino" type="numeric"/>
+            <column name="potmasculino" type="numeric"/>
+            <column name="pottotal" type="numeric"/>
+            <column name="jal" type="numeric"/>
+            <column name="nomjal" type="string"/>
+            <column name="indicador" type="numeric"/>
+            <column name="expandida" type="numeric"/>
+            <column name="direccion" type="string"/>
+            <column name="cordenadas_text" type="string"/>
+        </loadData>
+        <rollback></rollback>
+    </changeSet>
+
+    <!-- Insertar datos en tabla final con conversión de tipo point -->
+    <changeSet id="20251027142000-3" author="jhipster">
+        <sql>
+            INSERT INTO divipol (
+                iddivipol, clase, coddepto, codmipio, codzona, codpuesto,
+                nomdepto, nommipio, nompuesto, nummesas, potfemenino, potmasculino,
+                pottotal, jal, nomjal, indicador, expandida, direccion, cordenadas
+            )
+            SELECT
+                iddivipol, clase, coddepto, codmipio, codzona, codpuesto,
+                nomdepto, nommipio, nompuesto, nummesas, potfemenino, potmasculino,
+                pottotal, jal, nomjal, indicador, expandida, direccion,
+                CASE
+                    WHEN cordenadas_text IS NOT NULL AND cordenadas_text != ''
+                    THEN cordenadas_text::point
+                    ELSE NULL
+                END as cordenadas
+            FROM divipol_load;
+        </sql>
+        <rollback></rollback>
+    </changeSet>
+
+    <!-- Eliminar tabla auxiliar -->
+    <changeSet id="20251027142000-4" author="jhipster">
+        <dropTable tableName="divipol_load"/>
+        <rollback></rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Added views for Divipol entity.
+        Vistas agregadas que consolidan información por departamento, municipio, zona y puesto de votación.
+    -->
+
+    <!-- Vista agregada por departamento -->
+    <changeSet id="20251027141000-1" author="jhipster">
+        <createView viewName="view_divipol_departamento" replaceIfExists="true">
+            SELECT coddepto,
+                nomdepto,
+                sum(potfemenino) AS mujeres,
+                sum(potmasculino) AS hombres,
+                sum(pottotal) AS total_potencial,
+                sum(nummesas) AS mesas
+            FROM divipol
+            WHERE clase = 'P'
+            GROUP BY coddepto, nomdepto
+            ORDER BY coddepto
+        </createView>
+    </changeSet>
+
+    <!-- Vista agregada por municipio -->
+    <changeSet id="20251027141000-2" author="jhipster">
+        <createView viewName="view_divipol_municipio" replaceIfExists="true">
+            SELECT coddepto,
+                codmipio,
+                nomdepto,
+                nommipio,
+                sum(potfemenino) AS potencial_femenino,
+                sum(potmasculino) AS potencial_masculino,
+                sum(pottotal) AS potencial_total,
+                sum(nummesas) AS mesas
+            FROM divipol
+            WHERE clase = 'P'
+            GROUP BY coddepto, codmipio, nomdepto, nommipio
+            ORDER BY coddepto, codmipio
+        </createView>
+    </changeSet>
+
+    <!-- Vista agregada por zona -->
+    <changeSet id="20251027141000-3" author="jhipster">
+        <createView viewName="view_divipol_zona" replaceIfExists="true">
+            SELECT coddepto,
+                codmipio,
+                codzona,
+                nomdepto,
+                nommipio,
+                sum(potfemenino) AS potencial_femenino,
+                sum(potmasculino) AS potencial_masculino,
+                sum(pottotal) AS potencial_total,
+                sum(nummesas) AS mesas
+            FROM divipol
+            WHERE clase = 'P'
+            GROUP BY coddepto, codmipio, nomdepto, nommipio, codzona
+            ORDER BY coddepto, codmipio, codzona
+        </createView>
+    </changeSet>
+
+    <!-- Vista agregada por puesto de votación -->
+    <changeSet id="20251027141000-4" author="jhipster">
+        <createView viewName="view_divipol_puesto" replaceIfExists="true">
+            SELECT coddepto,
+                codmipio,
+                codzona,
+                codpuesto,
+                nomdepto,
+                nommipio,
+                nompuesto,
+                sum(potfemenino) AS potencial_femenino,
+                sum(potmasculino) AS potencial_masculino,
+                sum(pottotal) AS potencial_total,
+                sum(nummesas) AS mesas
+            FROM divipol
+            WHERE clase = 'P'
+            GROUP BY coddepto, codmipio, codzona, codpuesto, nomdepto, nommipio, nompuesto
+            ORDER BY coddepto, codmipio, codzona, codpuesto
+        </createView>
+    </changeSet>
+
+</databaseChangeLog>
