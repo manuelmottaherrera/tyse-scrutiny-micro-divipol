@@ -9,7 +9,192 @@ servers:
     description: Development server
   - url: https://localhost:8081/api
     description: Development server with TLS Profile
-paths: {}
+paths:
+  /divipol/departamentos:
+    get:
+      tags:
+        - divipol
+      summary: Obtener todos los departamentos
+      operationId: getAllDepartamentos
+      responses:
+        '200':
+          description: Lista de departamentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DivipolDepartamentoDTO'
+
+  /divipol/municipios:
+    get:
+      tags:
+        - divipol
+      summary: Obtener municipios por departamento
+      operationId: getMunicipiosByDepartamento
+      parameters:
+        - name: codDepto
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de municipios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DivipolMunicipioDTO'
+
+  /divipol/zonas:
+    get:
+      tags:
+        - divipol
+      summary: Obtener zonas por municipio
+      operationId: getZonasByMunicipio
+      parameters:
+        - name: codDepto
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: codMpio
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de zonas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DivipolZonaDTO'
+
+  /divipol/puestos:
+    get:
+      tags:
+        - divipol
+      summary: Obtener puestos por zona
+      operationId: getPuestosByZona
+      parameters:
+        - name: codDepto
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: codMpio
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: codZona
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de puestos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DivipolPuestoDTO'
+
+  /divipol/stats:
+    get:
+      tags:
+        - divipol
+      summary: Obtener estadísticas generales
+      operationId: getGeneralStats
+      responses:
+        '200':
+          description: Estadísticas generales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivipolStatsDTO'
+
+  /divipol/stats/departamento/{codDepto}:
+    get:
+      tags:
+        - divipol
+      summary: Obtener estadísticas de un departamento
+      operationId: getStatsByDepartamento
+      parameters:
+        - name: codDepto
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estadísticas del departamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivipolStatsDTO'
+
+  /divipol/stats/municipio/{codDepto}/{codMpio}:
+    get:
+      tags:
+        - divipol
+      summary: Obtener estadísticas de un municipio
+      operationId: getStatsByMunicipio
+      parameters:
+        - name: codDepto
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: codMpio
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estadísticas del municipio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivipolStatsDTO'
+
+  /divipol/stats/zona/{codDepto}/{codMpio}/{codZona}:
+    get:
+      tags:
+        - divipol
+      summary: Obtener estadísticas de una zona
+      operationId: getStatsByZona
+      parameters:
+        - name: codDepto
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: codMpio
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: codZona
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estadísticas de la zona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivipolStatsDTO'
 components:
   responses:
     Problem:
@@ -56,6 +241,135 @@ components:
                 description: |
                   An absolute URI that identifies the specific occurrence of the problem.
                   It may or may not yield further information if dereferenced.
+
+  schemas:
+    DivipolDepartamentoDTO:
+      type: object
+      properties:
+        coddepto:
+          type: integer
+        nomdepto:
+          type: string
+        mujeres:
+          type: integer
+          format: int64
+        hombres:
+          type: integer
+          format: int64
+        totalPotencial:
+          type: integer
+          format: int64
+        mesas:
+          type: integer
+          format: int64
+
+    DivipolMunicipioDTO:
+      type: object
+      properties:
+        coddepto:
+          type: integer
+        codmipio:
+          type: integer
+        nomdepto:
+          type: string
+        nommipio:
+          type: string
+        potencialFemenino:
+          type: integer
+          format: int64
+        potencialMasculino:
+          type: integer
+          format: int64
+        potencialTotal:
+          type: integer
+          format: int64
+        mesas:
+          type: integer
+          format: int64
+
+    DivipolZonaDTO:
+      type: object
+      properties:
+        coddepto:
+          type: integer
+        codmipio:
+          type: integer
+        codzona:
+          type: integer
+        nomdepto:
+          type: string
+        nommipio:
+          type: string
+        potencialFemenino:
+          type: integer
+          format: int64
+        potencialMasculino:
+          type: integer
+          format: int64
+        potencialTotal:
+          type: integer
+          format: int64
+        mesas:
+          type: integer
+          format: int64
+
+    DivipolPuestoDTO:
+      type: object
+      properties:
+        coddepto:
+          type: integer
+        codmipio:
+          type: integer
+        codzona:
+          type: integer
+        codpuesto:
+          type: string
+        nomdepto:
+          type: string
+        nommipio:
+          type: string
+        nompuesto:
+          type: string
+        potencialFemenino:
+          type: integer
+          format: int64
+        potencialMasculino:
+          type: integer
+          format: int64
+        potencialTotal:
+          type: integer
+          format: int64
+        mesas:
+          type: integer
+          format: int64
+
+    DivipolStatsDTO:
+      type: object
+      properties:
+        totalDepartamentos:
+          type: integer
+          format: int64
+        totalMunicipios:
+          type: integer
+          format: int64
+        totalZonas:
+          type: integer
+          format: int64
+        totalPuestos:
+          type: integer
+          format: int64
+        totalMesas:
+          type: integer
+          format: int64
+        potencialFemenino:
+          type: integer
+          format: int64
+        potencialMasculino:
+          type: integer
+          format: int64
+        potencialTotal:
+          type: integer
+          format: int64
 
   securitySchemes:
     jwt:
