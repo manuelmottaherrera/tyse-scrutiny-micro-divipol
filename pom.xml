@@ -906,6 +906,38 @@
                                 <goal>report-integration</goal>
                             </goals>
                         </execution>
+                        <execution>
+                            <!-- Merge unit and integration test coverage -->
+                            <id>merge-unit-and-integration</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>merge</goal>
+                            </goals>
+                            <configuration>
+                                <fileSets>
+                                    <fileSet>
+                                        <directory>${project.build.directory}</directory>
+                                        <includes>
+                                            <include>jacoco.exec</include>
+                                            <include>jacoco-it.exec</include>
+                                        </includes>
+                                    </fileSet>
+                                </fileSets>
+                                <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <!-- Generate combined coverage report -->
+                            <id>report-merged</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+                                <outputDirectory>${project.reporting.outputDirectory}/jacoco-merged</outputDirectory>
+                            </configuration>
+                        </execution>
                     </executions>
                 </plugin>
                 <plugin>

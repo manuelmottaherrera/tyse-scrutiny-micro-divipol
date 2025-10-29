@@ -76,8 +76,9 @@ public class Divipol implements Serializable {
     private String direccion;
 
     // Coordenadas geográficas (tipo POINT de PostgreSQL)
-    // Se maneja como String en formato "POINT(lon lat)" para simplicidad con R2DBC
-    @Column("cordenadas")
+    // Marcado como Transient porque R2DBC no soporta mapeo automático de POINT a String
+    // TODO: Implementar converter custom si se necesita acceder a las coordenadas
+    @org.springframework.data.annotation.Transient
     private String cordenadas;
 
     // Getters and Setters
