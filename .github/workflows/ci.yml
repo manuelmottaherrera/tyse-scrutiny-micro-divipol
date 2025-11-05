@@ -1,0 +1,75 @@
+name: Divipol - CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Backend Tests
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-divipol-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2-divipol
+
+      - name: Run Backend Tests
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify \
+            -Dlogging.level.ROOT=ERROR \
+            -Dlogging.level.tech.jhipster=ERROR \
+            -Dlogging.level.com.tyse.scrutiny=ERROR
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: divipol-backend-test-results
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: divipol-backend-coverage
+          path: target/site/jacoco/
+          retention-days: 7
+
+  # Quality Gate
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "Backend Tests: ${{ needs.backend-tests.result }}"
+
+          if [ "${{ needs.backend-tests.result }}" != "success" ]; then
+            echo "❌ CI Pipeline Failed - Tests failed"
+            exit 1
+          fi
+
+          echo "✅ CI Pipeline Passed - All tests successful"
