@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Add sequence for divipol table to enable auto-increment functionality.
+
+        IMPORTANTE: Este changeset soluciona el problema de inserción de nuevos registros
+        después de que se cargaron datos con IDs explícitos.
+
+        La secuencia se resetea dinámicamente al MAX(iddivipol) + 1 para evitar conflictos.
+    -->
+
+    <!-- Crear secuencia para iddivipol -->
+    <changeSet id="20251027143000-1" author="jhipster">
+        <createSequence
+            sequenceName="divipol_seq"
+            incrementBy="1"
+            cacheSize="1"/>
+        <rollback>
+            <dropSequence sequenceName="divipol_seq"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Reset divipol sequence (if any data loaded) -->
+    <changeSet id="20251027143000-2" author="jhipster">
+        <sql dbms="postgresql">
+            SELECT setval('divipol_seq', (SELECT COALESCE(MAX(iddivipol), 1) FROM divipol));
+        </sql>
+        <rollback></rollback>
+    </changeSet>
+
+    <!-- Configurar columna iddivipol para usar la secuencia como DEFAULT -->
+    <changeSet id="20251027143000-3" author="jhipster">
+        <addDefaultValue
+            tableName="divipol"
+            columnName="iddivipol"
+            defaultValueSequenceNext="divipol_seq"/>
+        <rollback>
+            <dropDefaultValue tableName="divipol" columnName="iddivipol"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
