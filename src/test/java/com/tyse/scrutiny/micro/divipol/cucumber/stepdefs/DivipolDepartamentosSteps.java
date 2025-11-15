@@ -2,6 +2,7 @@ package com.tyse.scrutiny.micro.divipol.cucumber.stepdefs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.tyse.scrutiny.micro.divipol.security.jwt.JwtAuthenticationTestUtils;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.DivipolDepartamentoDTO;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.es.Cuando;
@@ -12,8 +13,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -26,6 +28,9 @@ public class DivipolDepartamentosSteps extends StepDefs {
 
     @Autowired
     private WebTestClient webTestClient;
+
+    @Value("${jhipster.security.authentication.jwt.base64-secret}")
+    private String jwtKey;
 
     private List<DivipolDepartamentoDTO> departamentos;
     private boolean authenticated = true;
@@ -40,9 +45,8 @@ public class DivipolDepartamentosSteps extends StepDefs {
     }
 
     @Dado("que soy un usuario autenticado")
-    @WithMockUser
     public void queSoyUnUsuarioAutenticado() {
-        // La anotación @WithMockUser maneja la autenticación
+        // Se generará un token JWT válido en el step "Cuando"
         authenticated = true;
     }
 
@@ -56,26 +60,21 @@ public class DivipolDepartamentosSteps extends StepDefs {
 
     @Cuando("consulto el endpoint GET {string}")
     public void consultoElEndpointGET(String endpoint) {
+        WebTestClient.RequestHeadersSpec<?> request = webTestClient
+            .mutate()
+            .responseTimeout(Duration.ofSeconds(10))
+            .build()
+            .get()
+            .uri(endpoint)
+            .accept(MediaType.APPLICATION_JSON);
+
         if (authenticated) {
-            // Usuario autenticado - usar @WithMockUser implícitamente
-            actions = webTestClient
-                .mutate()
-                .responseTimeout(Duration.ofSeconds(10))
-                .build()
-                .get()
-                .uri(endpoint)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange();
+            // Usuario autenticado - agregar token JWT válido
+            String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
+            actions = request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
         } else {
-            // Usuario NO autenticado
-            actions = webTestClient
-                .mutate()
-                .responseTimeout(Duration.ofSeconds(10))
-                .build()
-                .get()
-                .uri(endpoint)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange();
+            // Usuario NO autenticado - sin token
+            actions = request.exchange();
         }
     }
 
@@ -93,12 +92,7 @@ public class DivipolDepartamentosSteps extends StepDefs {
 
     @Y("la respuesta contiene al menos {int} departamentos")
     public void laRespuestaContieneAlMenosDepartamentos(int cantidadMinima) {
-        departamentos = actions
-            .expectBody()
-            .returnResult()
-            .getResponseBody() != null
-            ? actions.returnResult(DivipolDepartamentoDTO.class).getResponseBody().collectList().block(Duration.ofSeconds(10))
-            : List.of();
+        departamentos = actions.returnResult(DivipolDepartamentoDTO.class).getResponseBody().collectList().block(Duration.ofSeconds(10));
 
         assertThat(departamentos).isNotNull();
         assertThat(departamentos.size()).isGreaterThanOrEqualTo(cantidadMinima);
