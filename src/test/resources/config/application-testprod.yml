@@ -1,0 +1,25 @@
+# ===================================================================
+# Spring Boot configuration for the testprod profile
+#
+# This configuration is used when running Cucumber tests with -Dspring.profiles.active=testprod
+# ===================================================================
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          authority-prefix: ''
+          authorities-claim-name: auth
+          # Use the same secret as in test configuration
+          # This ensures JWT validation works in integration tests
+
+jhipster:
+  security:
+    authentication:
+      jwt:
+        # This token must be encoded using Base64 (same as test profile)
+        base64-secret: NzRhM2MwNGI0Y2ZhYTBjM2E4ZWYwYzMzZTBlZTcyZGU1ZDU0MzZhMDBlYzIwOTA5OGFkNDcxYjEwOGUzZGExMGRhNDAxMDk3YTJlOWZiMDAyYjhlNTkyNzk3YjhlMTAxMjQ2ODE5ZmJkNjM3MjJhNDRkY2Q4ZTNjMmRiMDk0NmI=
+        # Token is valid 24 hours
+        token-validity-in-seconds: 86400
+        token-validity-in-seconds-for-remember-me: 86400
