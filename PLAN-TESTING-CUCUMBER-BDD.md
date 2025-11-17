@@ -32,18 +32,19 @@
 
 ### Beneficios Clave
 
-| Beneficio | Descripción |
-|-----------|-------------|
+| Beneficio                 | Descripción                                                        |
+| ------------------------- | ------------------------------------------------------------------ |
 | 📖 **Documentación Viva** | Los `.feature` documentan cómo funciona la API en lenguaje natural |
-| 🤝 **Comunicación** | Product owners y stakeholders pueden leer y validar comportamiento |
-| ✅ **Testing BDD** | Primero defines comportamiento, luego implementas |
-| 🔄 **Reutilización** | Steps se reusan entre múltiples scenarios |
-| 🎯 **Enfoque** | Escribes lo que importa, no cómo se implementa |
-| 📊 **Reportes** | HTML hermosos que puedes compartir con stakeholders |
+| 🤝 **Comunicación**       | Product owners y stakeholders pueden leer y validar comportamiento |
+| ✅ **Testing BDD**        | Primero defines comportamiento, luego implementas                  |
+| 🔄 **Reutilización**      | Steps se reusan entre múltiples scenarios                          |
+| 🎯 **Enfoque**            | Escribes lo que importa, no cómo se implementa                     |
+| 📊 **Reportes**           | HTML hermosos que puedes compartir con stakeholders                |
 
 ### Ejemplo Comparativo
 
 #### ❌ Test Tradicional (Solo devs lo entienden)
+
 ```java
 @Test
 void getAllDepartamentos_shouldReturnListOfDepartamentos() {
@@ -53,6 +54,7 @@ void getAllDepartamentos_shouldReturnListOfDepartamentos() {
 ```
 
 #### ✅ Cucumber (TODOS lo entienden)
+
 ```gherkin
 # language: es
 Característica: Consultar departamentos de Colombia
@@ -105,12 +107,14 @@ HITO 5: PERFORMANCE Y EXCELENCIA (Opcional)
 ## 📊 Estado Actual
 
 ### Métricas Iniciales (Antes de Cucumber)
+
 - **Cobertura:** 49%
 - **Tests JUnit:** 94 (52 unit + 42 integration)
 - **Scenarios Cucumber:** 0
 - **Features:** 0
 
 ### Estado Actual (Después de Fase 1A)
+
 - ✅ **Cobertura:** 49% (sin cambio, Cucumber es documentación)
 - ✅ **Tests JUnit:** 94 (mantiene)
 - ✅ **Scenarios Cucumber:** 3 ✨ NUEVO
@@ -119,6 +123,7 @@ HITO 5: PERFORMANCE Y EXCELENCIA (Opcional)
 - ✅ **Autenticación:** JWT real implementada ✨ MEJORADO
 
 ### Archivos Creados en Fase 1A
+
 ```
 ✅ src/test/resources/features/divipol-departamentos.feature
 ✅ src/test/java/.../cucumber/stepdefs/DivipolDepartamentosSteps.java
@@ -149,11 +154,13 @@ HITO 5: PERFORMANCE Y EXCELENCIA (Opcional)
 #### Entregables Completados
 
 1. **divipol-departamentos.feature** (3 escenarios)
+
    - ✅ Consultar todos los departamentos exitosamente (@happy-path)
    - ✅ Consultar departamentos sin autenticación (@seguridad)
    - ✅ Verificar coherencia de datos (@validacion-datos)
 
 2. **DivipolDepartamentosSteps.java** (12 steps)
+
    - ✅ Dado que la base de datos tiene cargados los datos de DIVIPOL
    - ✅ Dado que soy un usuario autenticado (con JWT real)
    - ✅ Dado que NO estoy autenticado
@@ -186,6 +193,7 @@ firefox target/cucumber-reports/cucumber.html
 ```
 
 #### Resultado Esperado
+
 ```
 3 Scenarios (3 passed)
 12 Steps (12 passed)
@@ -476,55 +484,57 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 public class DivipolCommonSteps extends StepDefs {
 
-    @Autowired
-    private WebTestClient webTestClient;
+  @Autowired
+  private WebTestClient webTestClient;
 
-    @Value("${jhipster.security.authentication.jwt.base64-secret}")
-    private String jwtKey;
+  @Value("${jhipster.security.authentication.jwt.base64-secret}")
+  private String jwtKey;
 
-    protected boolean authenticated = true;
+  protected boolean authenticated = true;
 
-    @Dado("que la base de datos tiene cargados los datos de DIVIPOL")
-    public void queBaseDeDatosTieneDatosDeDivipol() {
-        assertThat(webTestClient).isNotNull();
+  @Dado("que la base de datos tiene cargados los datos de DIVIPOL")
+  public void queBaseDeDatosTieneDatosDeDivipol() {
+    assertThat(webTestClient).isNotNull();
+  }
+
+  @Dado("que soy un usuario autenticado")
+  public void queSoyUnUsuarioAutenticado() {
+    authenticated = true;
+  }
+
+  @Dado("que NO estoy autenticado")
+  public void queNoEstoyAutenticado() {
+    authenticated = false;
+  }
+
+  @Cuando("consulto el endpoint GET {string}")
+  public void consultoElEndpointGET(String endpoint) {
+    WebTestClient.RequestHeadersSpec<?> request = webTestClient
+      .mutate()
+      .responseTimeout(Duration.ofSeconds(10))
+      .build()
+      .get()
+      .uri(endpoint)
+      .accept(MediaType.APPLICATION_JSON);
+
+    if (authenticated) {
+      String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
+      actions = request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
+    } else {
+      actions = request.exchange();
     }
+  }
 
-    @Dado("que soy un usuario autenticado")
-    public void queSoyUnUsuarioAutenticado() {
-        authenticated = true;
-    }
-
-    @Dado("que NO estoy autenticado")
-    public void queNoEstoyAutenticado() {
-        authenticated = false;
-    }
-
-    @Cuando("consulto el endpoint GET {string}")
-    public void consultoElEndpointGET(String endpoint) {
-        WebTestClient.RequestHeadersSpec<?> request = webTestClient
-            .mutate()
-            .responseTimeout(Duration.ofSeconds(10))
-            .build()
-            .get()
-            .uri(endpoint)
-            .accept(MediaType.APPLICATION_JSON);
-
-        if (authenticated) {
-            String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
-            actions = request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
-        } else {
-            actions = request.exchange();
-        }
-    }
-
-    @Entonces("recibo un código de respuesta {int}")
-    public void reciboUnCodigoDeRespuesta(int statusCode) {
-        actions.expectStatus().isEqualTo(statusCode);
-    }
+  @Entonces("recibo un código de respuesta {int}")
+  public void reciboUnCodigoDeRespuesta(int statusCode) {
+    actions.expectStatus().isEqualTo(statusCode);
+  }
 }
+
 ```
 
 #### Criterios de Éxito - Fase 1B
+
 - ✅ 22 scenarios nuevos (3 → 25 scenarios)
 - ✅ Todos los 8 endpoints documentados con Cucumber
 - ✅ Steps reutilizables entre features
@@ -576,70 +586,64 @@ import reactor.test.StepVerifier;
 @ExtendWith(MockitoExtension.class)
 class DivipolServiceTest {
 
-    @Mock
-    private DivipolRepository divipolRepository;
+  @Mock
+  private DivipolRepository divipolRepository;
 
-    @InjectMocks
-    private DivipolService divipolService;
+  @InjectMocks
+  private DivipolService divipolService;
 
-    @Test
-    void getAllDepartamentos_shouldCallRepositoryAndReturnOk() {
-        // Given
-        DivipolDepartamentoDTO mockDepto = new DivipolDepartamentoDTO()
-            .coddepto(5)
-            .nomdepto("BOLIVAR")
-            .totalPotencial(1000000L)
-            .mesas(5000L)
-            .mujeres(500000L)
-            .hombres(500000L);
+  @Test
+  void getAllDepartamentos_shouldCallRepositoryAndReturnOk() {
+    // Given
+    DivipolDepartamentoDTO mockDepto = new DivipolDepartamentoDTO()
+      .coddepto(5)
+      .nomdepto("BOLIVAR")
+      .totalPotencial(1000000L)
+      .mesas(5000L)
+      .mujeres(500000L)
+      .hombres(500000L);
 
-        Flux<DivipolDepartamentoDTO> mockFlux = Flux.just(mockDepto);
-        when(divipolRepository.findAllDepartamentos()).thenReturn(mockFlux);
+    Flux<DivipolDepartamentoDTO> mockFlux = Flux.just(mockDepto);
+    when(divipolRepository.findAllDepartamentos()).thenReturn(mockFlux);
 
-        // When
-        Mono<ResponseEntity<Flux<DivipolDepartamentoDTO>>> result =
-            divipolService.getAllDepartamentos(null);
+    // When
+    Mono<ResponseEntity<Flux<DivipolDepartamentoDTO>>> result = divipolService.getAllDepartamentos(null);
 
-        // Then
-        StepVerifier.create(result)
-            .assertNext(response -> {
-                assertThat(response.getStatusCodeValue()).isEqualTo(200);
-                assertThat(response.getBody()).isNotNull();
-            })
-            .verifyComplete();
+    // Then
+    StepVerifier.create(result)
+      .assertNext(response -> {
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+      })
+      .verifyComplete();
 
-        verify(divipolRepository, times(1)).findAllDepartamentos();
-    }
+    verify(divipolRepository, times(1)).findAllDepartamentos();
+  }
 
-    @Test
-    void getMunicipiosByDepartamento_shouldCallRepositoryWithCorrectParameters() {
-        // Given
-        Integer codDepto = 5;
-        DivipolMunicipioDTO mockMunicipio = new DivipolMunicipioDTO()
-            .coddepto(5)
-            .codmipio(1)
-            .nomdepto("BOLIVAR")
-            .nommipio("CARTAGENA");
+  @Test
+  void getMunicipiosByDepartamento_shouldCallRepositoryWithCorrectParameters() {
+    // Given
+    Integer codDepto = 5;
+    DivipolMunicipioDTO mockMunicipio = new DivipolMunicipioDTO().coddepto(5).codmipio(1).nomdepto("BOLIVAR").nommipio("CARTAGENA");
 
-        Flux<DivipolMunicipioDTO> mockFlux = Flux.just(mockMunicipio);
-        when(divipolRepository.findMunicipiosByDepartamento(codDepto)).thenReturn(mockFlux);
+    Flux<DivipolMunicipioDTO> mockFlux = Flux.just(mockMunicipio);
+    when(divipolRepository.findMunicipiosByDepartamento(codDepto)).thenReturn(mockFlux);
 
-        // When
-        Mono<ResponseEntity<Flux<DivipolMunicipioDTO>>> result =
-            divipolService.getMunicipiosByDepartamento(codDepto, null);
+    // When
+    Mono<ResponseEntity<Flux<DivipolMunicipioDTO>>> result = divipolService.getMunicipiosByDepartamento(codDepto, null);
 
-        // Then
-        StepVerifier.create(result)
-            .assertNext(response -> {
-                assertThat(response.getStatusCodeValue()).isEqualTo(200);
-            })
-            .verifyComplete();
+    // Then
+    StepVerifier.create(result)
+      .assertNext(response -> {
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+      })
+      .verifyComplete();
 
-        verify(divipolRepository).findMunicipiosByDepartamento(codDepto);
-    }
-
-    // ... 8 tests más para cada método del service
+    verify(divipolRepository).findMunicipiosByDepartamento(codDepto);
+  }
+  // ... 8 tests más para cada método del service
 }
+
 ```
 
 ##### 2. KafkaConsumerTest.java (5 tests)
@@ -661,45 +665,43 @@ import reactor.test.StepVerifier;
  */
 class KafkaConsumerTest {
 
-    private KafkaConsumer kafkaConsumer;
+  private KafkaConsumer kafkaConsumer;
 
-    @BeforeEach
-    void setup() {
-        kafkaConsumer = new KafkaConsumer();
-    }
+  @BeforeEach
+  void setup() {
+    kafkaConsumer = new KafkaConsumer();
+  }
 
-    @Test
-    void accept_shouldEmitMessageToFlux() {
-        // Given
-        String message = "test-message";
-        Flux<String> flux = kafkaConsumer.getFlux();
+  @Test
+  void accept_shouldEmitMessageToFlux() {
+    // Given
+    String message = "test-message";
+    Flux<String> flux = kafkaConsumer.getFlux();
 
-        // When
-        kafkaConsumer.accept(message);
+    // When
+    kafkaConsumer.accept(message);
 
-        // Then
-        StepVerifier.create(flux)
-            .expectNext(message)
-            .thenCancel()
-            .verify();
-    }
+    // Then
+    StepVerifier.create(flux).expectNext(message).thenCancel().verify();
+  }
 
-    @Test
-    void getFlux_shouldReturnNonNullFlux() {
-        // When
-        Flux<String> flux = kafkaConsumer.getFlux();
+  @Test
+  void getFlux_shouldReturnNonNullFlux() {
+    // When
+    Flux<String> flux = kafkaConsumer.getFlux();
 
-        // Then
-        assertThat(flux).isNotNull();
-    }
-
-    // ... 3 tests más
+    // Then
+    assertThat(flux).isNotNull();
+  }
+  // ... 3 tests más
 }
+
 ```
 
 ##### 3. KafkaProducerTest.java (3 tests)
 
 #### Criterios de Éxito - Fase 1C
+
 - ✅ 18 tests unitarios nuevos (94 → 112)
 - ✅ Tests se ejecutan en <5 segundos
 - ✅ No usan @SpringBootTest
@@ -784,6 +786,7 @@ Característica: Validaciones de parámetros de entrada
 **Step Definitions:** `DivipolValidacionesSteps.java` (8 steps nuevos)
 
 #### Criterios de Éxito - Fase 1D
+
 - ✅ 15 scenarios de validación
 - ✅ Data tables para casos múltiples
 - ✅ Validaciones documentadas como reglas de negocio
@@ -794,6 +797,7 @@ Característica: Validaciones de parámetros de entrada
 ## ✅ Criterios de Éxito - HITO 1
 
 Al completar el Hito 1:
+
 - ✅ **Scenarios Cucumber:** 0 → 40 scenarios
 - ✅ **Tests JUnit:** 94 → 130
 - ✅ **Total tests:** ~170 tests
@@ -804,6 +808,7 @@ Al completar el Hito 1:
 - ✅ **Documentación:** API completamente documentada en Gherkin
 
 **Comando de verificación final:**
+
 ```bash
 # Ver scenarios de Cucumber
 ./mvnw verify | grep "Scenarios"
@@ -1159,59 +1164,60 @@ import org.slf4j.LoggerFactory;
  */
 public class CucumberHooks {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CucumberHooks.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CucumberHooks.class);
 
-    @Before
-    public void beforeScenario(Scenario scenario) {
-        LOG.info("========================================");
-        LOG.info("Iniciando scenario: {}", scenario.getName());
-        LOG.info("Tags: {}", scenario.getSourceTagNames());
-        LOG.info("========================================");
+  @Before
+  public void beforeScenario(Scenario scenario) {
+    LOG.info("========================================");
+    LOG.info("Iniciando scenario: {}", scenario.getName());
+    LOG.info("Tags: {}", scenario.getSourceTagNames());
+    LOG.info("========================================");
+  }
+
+  @After
+  public void afterScenario(Scenario scenario) {
+    LOG.info("========================================");
+    LOG.info("Finalizando scenario: {}", scenario.getName());
+    LOG.info("Estado: {}", scenario.getStatus());
+    LOG.info("========================================");
+
+    // Limpiar contexto si es necesario
+    // Capturar screenshots si falló
+    if (scenario.isFailed()) {
+      LOG.error("Scenario falló: {}", scenario.getName());
+      // Aquí podrías capturar logs adicionales
     }
+  }
 
-    @After
-    public void afterScenario(Scenario scenario) {
-        LOG.info("========================================");
-        LOG.info("Finalizando scenario: {}", scenario.getName());
-        LOG.info("Estado: {}", scenario.getStatus());
-        LOG.info("========================================");
+  @BeforeStep
+  public void beforeStep(Scenario scenario) {
+    // Opcional: logging antes de cada step
+  }
 
-        // Limpiar contexto si es necesario
-        // Capturar screenshots si falló
-        if (scenario.isFailed()) {
-            LOG.error("Scenario falló: {}", scenario.getName());
-            // Aquí podrías capturar logs adicionales
-        }
-    }
+  @AfterStep
+  public void afterStep(Scenario scenario) {
+    // Opcional: validaciones después de cada step
+  }
 
-    @BeforeStep
-    public void beforeStep(Scenario scenario) {
-        // Opcional: logging antes de cada step
-    }
+  // Hooks condicionales por tags
+  @Before("@database")
+  public void beforeDatabaseScenario() {
+    LOG.info("Preparando escenario que requiere base de datos");
+    // Verificar conexión a BD, limpiar datos, etc.
+  }
 
-    @AfterStep
-    public void afterStep(Scenario scenario) {
-        // Opcional: validaciones después de cada step
-    }
+  @After("@database")
+  public void afterDatabaseScenario() {
+    LOG.info("Limpiando después de escenario de base de datos");
+    // Rollback, limpiar datos de test, etc.
+  }
 
-    // Hooks condicionales por tags
-    @Before("@database")
-    public void beforeDatabaseScenario() {
-        LOG.info("Preparando escenario que requiere base de datos");
-        // Verificar conexión a BD, limpiar datos, etc.
-    }
-
-    @After("@database")
-    public void afterDatabaseScenario() {
-        LOG.info("Limpiando después de escenario de base de datos");
-        // Rollback, limpiar datos de test, etc.
-    }
-
-    @Before("@slow")
-    public void beforeSlowScenario() {
-        LOG.warn("Iniciando escenario lento - puede tomar >10 segundos");
-    }
+  @Before("@slow")
+  public void beforeSlowScenario() {
+    LOG.warn("Iniciando escenario lento - puede tomar >10 segundos");
+  }
 }
+
 ```
 
 ---
@@ -1252,44 +1258,44 @@ public class CucumberHooks {
 @ExtendWith(MockitoExtension.class)
 class DivipolRowMapperTest {
 
-    private DivipolRowMapper mapper;
+  private DivipolRowMapper mapper;
 
-    @BeforeEach
-    void setup() {
-        mapper = new DivipolRowMapper();
-    }
+  @BeforeEach
+  void setup() {
+    mapper = new DivipolRowMapper();
+  }
 
-    @Test
-    void apply_withCompleteRow_shouldMapAllFields() {
-        // Given
-        Row mockRow = mock(Row.class);
-        when(mockRow.get("iddivipol", Integer.class)).thenReturn(1);
-        when(mockRow.get("clase", String.class)).thenReturn("D");
-        when(mockRow.get("coddepto", Integer.class)).thenReturn(5);
-        // ... configurar todos los campos
+  @Test
+  void apply_withCompleteRow_shouldMapAllFields() {
+    // Given
+    Row mockRow = mock(Row.class);
+    when(mockRow.get("iddivipol", Integer.class)).thenReturn(1);
+    when(mockRow.get("clase", String.class)).thenReturn("D");
+    when(mockRow.get("coddepto", Integer.class)).thenReturn(5);
+    // ... configurar todos los campos
 
-        // When
-        Divipol result = mapper.apply(mockRow, null);
+    // When
+    Divipol result = mapper.apply(mockRow, null);
 
-        // Then
-        assertThat(result.getIddivipol()).isEqualTo(1);
-        assertThat(result.getClase()).isEqualTo("D");
-        assertThat(result.getCoddepto()).isEqualTo(5);
-        // ... verificar todos los campos
-    }
+    // Then
+    assertThat(result.getIddivipol()).isEqualTo(1);
+    assertThat(result.getClase()).isEqualTo("D");
+    assertThat(result.getCoddepto()).isEqualTo(5);
+    // ... verificar todos los campos
+  }
 
-    @Test
-    void apply_withNullOptionalFields_shouldMapCorrectly() {
-        // Test de campos opcionales null
-    }
+  @Test
+  void apply_withNullOptionalFields_shouldMapCorrectly() {
+    // Test de campos opcionales null
+  }
 
-    @Test
-    void apply_withEdgeValues_shouldHandleCorrectly() {
-        // Test con valores extremos
-    }
-
-    // ... 5 tests más
+  @Test
+  void apply_withEdgeValues_shouldHandleCorrectly() {
+    // Test con valores extremos
+  }
+  // ... 5 tests más
 }
+
 ```
 
 ##### 2. DivipolRepositoryCustomIT.java (15 tests)
@@ -1303,36 +1309,33 @@ class DivipolRowMapperTest {
 @EmbeddedSQL
 class DivipolRepositoryCustomIT {
 
-    @Autowired
-    private DivipolRepository divipolRepository;
+  @Autowired
+  private DivipolRepository divipolRepository;
 
-    @Test
-    void findAllDepartamentos_shouldReturnAllDepartamentos() {
-        // When
-        List<DivipolDepartamentoDTO> departamentos =
-            divipolRepository.findAllDepartamentos()
-                .collectList()
-                .block();
+  @Test
+  void findAllDepartamentos_shouldReturnAllDepartamentos() {
+    // When
+    List<DivipolDepartamentoDTO> departamentos = divipolRepository.findAllDepartamentos().collectList().block();
 
-        // Then
-        assertThat(departamentos).isNotEmpty();
-        assertThat(departamentos.size()).isGreaterThanOrEqualTo(32);
+    // Then
+    assertThat(departamentos).isNotEmpty();
+    assertThat(departamentos.size()).isGreaterThanOrEqualTo(32);
 
-        // Validar estructura de cada departamento
-        departamentos.forEach(depto -> {
-            assertThat(depto.getCoddepto()).isNotNull();
-            assertThat(depto.getNomdepto()).isNotBlank();
-            assertThat(depto.getTotalPotencial()).isGreaterThanOrEqualTo(0L);
-        });
-    }
+    // Validar estructura de cada departamento
+    departamentos.forEach(depto -> {
+      assertThat(depto.getCoddepto()).isNotNull();
+      assertThat(depto.getNomdepto()).isNotBlank();
+      assertThat(depto.getTotalPotencial()).isGreaterThanOrEqualTo(0L);
+    });
+  }
 
-    @Test
-    void findMunicipiosByDepartamento_withValidDepto_shouldReturnMunicipios() {
-        // ... test
-    }
-
-    // ... 13 tests más
+  @Test
+  void findMunicipiosByDepartamento_withValidDepto_shouldReturnMunicipios() {
+    // ... test
+  }
+  // ... 13 tests más
 }
+
 ```
 
 ##### 3. DivipolRepositoryAdvancedIT.java (14 tests)
@@ -1345,24 +1348,25 @@ class DivipolRepositoryCustomIT {
 @EmbeddedSQL
 class DivipolRepositoryAdvancedIT {
 
-    @Autowired
-    private DivipolRepository divipolRepository;
+  @Autowired
+  private DivipolRepository divipolRepository;
 
-    @Test
-    void findAllDepartamentos_withSorting_shouldReturnSorted() {
-        // Test de ordenamiento
-    }
+  @Test
+  void findAllDepartamentos_withSorting_shouldReturnSorted() {
+    // Test de ordenamiento
+  }
 
-    @Test
-    void findMunicipiosByDepartamento_withPagination_shouldReturnPage() {
-        // Test de paginación
-    }
-
-    // ... 12 tests más
+  @Test
+  void findMunicipiosByDepartamento_withPagination_shouldReturnPage() {
+    // Test de paginación
+  }
+  // ... 12 tests más
 }
+
 ```
 
 #### Criterios de Éxito - Fase 4A
+
 - ✅ 37 tests nuevos (145 → 182)
 - ✅ Cobertura de repository: 61% → 85%
 - ✅ Cobertura de repository.rowmapper: 15% → 80%
@@ -1380,24 +1384,26 @@ class DivipolRepositoryAdvancedIT {
  */
 class DivipolParameterizedTests {
 
-    @ParameterizedTest
-    @ValueSource(ints = {5, 8, 11, 13, 15, 17, 19, 23, 25})
-    void getMunicipiosByDepartamento_withValidDepartments_shouldReturnMunicipios(int codDepto) {
-        // Test reutilizable para múltiples departamentos
-    }
+  @ParameterizedTest
+  @ValueSource(ints = { 5, 8, 11, 13, 15, 17, 19, 23, 25 })
+  void getMunicipiosByDepartamento_withValidDepartments_shouldReturnMunicipios(int codDepto) {
+    // Test reutilizable para múltiples departamentos
+  }
 
-    @ParameterizedTest
-    @CsvSource({
-        "5,   1,   200",  // BOLIVAR/CARTAGENA - OK
-        "999, 1,   200",  // Departamento inexistente - OK (vacío)
-        "-1,  1,   400",  // Código negativo - Error
-        "5,   -1,  400",  // Municipio negativo - Error
-    })
-    void getZonasByMunicipio_withDifferentParams_shouldReturnExpectedStatus(
-        int codDepto, int codMpio, int expectedStatus) {
-        // Test con múltiples combinaciones
+  @ParameterizedTest
+  @CsvSource(
+    {
+      "5,   1,   200", // BOLIVAR/CARTAGENA - OK
+      "999, 1,   200", // Departamento inexistente - OK (vacío)
+      "-1,  1,   400", // Código negativo - Error
+      "5,   -1,  400", // Municipio negativo - Error
     }
+  )
+  void getZonasByMunicipio_withDifferentParams_shouldReturnExpectedStatus(int codDepto, int codMpio, int expectedStatus) {
+    // Test con múltiples combinaciones
+  }
 }
+
 ```
 
 ---
@@ -1408,6 +1414,7 @@ class DivipolParameterizedTests {
 **Tests esperados:** Variable según análisis de cobertura
 
 #### Proceso:
+
 1. Ejecutar JaCoCo: `./mvnw clean verify`
 2. Revisar reporte: `firefox target/site/jacoco-merged/index.html`
 3. Identificar clases con <50% cobertura
@@ -1493,26 +1500,27 @@ class DivipolLoadSimulation extends Simulation {
 @AnalyzeClasses(packages = "com.tyse.scrutiny.micro.divipol")
 class ArchitectureRulesTest {
 
-    @ArchTest
-    static final ArchRule services_should_only_be_accessed_by_controllers =
-        classes()
-            .that().resideInAPackage("..service..")
-            .should().onlyBeAccessed().byAnyPackage("..web..", "..service..", "..cucumber..");
+  @ArchTest
+  static final ArchRule services_should_only_be_accessed_by_controllers = classes()
+    .that()
+    .resideInAPackage("..service..")
+    .should()
+    .onlyBeAccessed()
+    .byAnyPackage("..web..", "..service..", "..cucumber..");
 
-    @ArchTest
-    static final ArchRule repositories_should_only_be_accessed_by_services =
-        classes()
-            .that().resideInAPackage("..repository..")
-            .should().onlyBeAccessed().byAnyPackage("..service..", "..config..");
+  @ArchTest
+  static final ArchRule repositories_should_only_be_accessed_by_services = classes()
+    .that()
+    .resideInAPackage("..repository..")
+    .should()
+    .onlyBeAccessed()
+    .byAnyPackage("..service..", "..config..");
 
-    @ArchTest
-    static final ArchRule dtos_should_be_immutable =
-        classes()
-            .that().resideInAPackage("..dto..")
-            .should().haveOnlyFinalFields();
-
-    // ... 7 reglas más
+  @ArchTest
+  static final ArchRule dtos_should_be_immutable = classes().that().resideInAPackage("..dto..").should().haveOnlyFinalFields();
+  // ... 7 reglas más
 }
+
 ```
 
 ---
@@ -1531,29 +1539,33 @@ class ArchitectureRulesTest {
 @AutoConfigureWebTestClient
 class ActuatorEndpointsIT {
 
-    @Autowired
-    private WebTestClient webTestClient;
+  @Autowired
+  private WebTestClient webTestClient;
 
-    @Test
-    void actuator_health_shouldReturnUp() {
-        webTestClient
-            .get()
-            .uri("/actuator/health")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.status").isEqualTo("UP")
-            .jsonPath("$.components.db.status").isEqualTo("UP")
-            .jsonPath("$.components.diskSpace.status").isEqualTo("UP");
-    }
+  @Test
+  void actuator_health_shouldReturnUp() {
+    webTestClient
+      .get()
+      .uri("/actuator/health")
+      .exchange()
+      .expectStatus()
+      .isOk()
+      .expectBody()
+      .jsonPath("$.status")
+      .isEqualTo("UP")
+      .jsonPath("$.components.db.status")
+      .isEqualTo("UP")
+      .jsonPath("$.components.diskSpace.status")
+      .isEqualTo("UP");
+  }
 
-    @Test
-    void actuator_metrics_shouldReturnMetrics() {
-        // Test de métricas
-    }
-
-    // ... 6 tests más
+  @Test
+  void actuator_metrics_shouldReturnMetrics() {
+    // Test de métricas
+  }
+  // ... 6 tests más
 }
+
 ```
 
 #### MetricsIT.java (7 tests)
@@ -1564,25 +1576,25 @@ class ActuatorEndpointsIT {
  */
 class MetricsIT {
 
-    @Test
-    void metrics_divipol_requests_shouldBeRecorded() {
-        // Llamar endpoint
-        webTestClient.get().uri("/api/divipol/departamentos")
-            .exchange().expectStatus().isOk();
+  @Test
+  void metrics_divipol_requests_shouldBeRecorded() {
+    // Llamar endpoint
+    webTestClient.get().uri("/api/divipol/departamentos").exchange().expectStatus().isOk();
 
-        // Verificar métrica
-        webTestClient
-            .get()
-            .uri("/actuator/metrics/http.server.requests")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.measurements[?(@.statistic=='COUNT')].value")
-            .value(count -> assertThat((Double)count).isGreaterThan(0));
-    }
-
-    // ... 6 tests más
+    // Verificar métrica
+    webTestClient
+      .get()
+      .uri("/actuator/metrics/http.server.requests")
+      .exchange()
+      .expectStatus()
+      .isOk()
+      .expectBody()
+      .jsonPath("$.measurements[?(@.statistic=='COUNT')].value")
+      .value(count -> assertThat((Double) count).isGreaterThan(0));
+  }
+  // ... 6 tests más
 }
+
 ```
 
 ---
@@ -1594,18 +1606,21 @@ class MetricsIT {
 #### Archivos a Crear/Actualizar
 
 1. **TESTING-GUIDE.md**
+
    - Guía completa de testing del proyecto
    - Convenciones y mejores prácticas
    - Cómo ejecutar diferentes tipos de tests
    - Troubleshooting común
 
 2. **CUCUMBER-CHEATSHEET.md**
+
    - Referencia rápida de Cucumber
    - Tags disponibles y su uso
    - Comandos más usados
    - Ejemplos de scenarios
 
 3. **API-DOCUMENTATION.md** (generado desde features)
+
    - Documentación de API generada desde Gherkin
    - Ejemplos de uso de cada endpoint
    - Códigos de respuesta esperados
@@ -1630,25 +1645,25 @@ class MetricsIT {
 
 ## 📊 RESUMEN EJECUTIVO DEL PLAN
 
-| Hito | Fases | Scenarios | Tests JUnit | Cobertura | Prioridad | Estado |
-|------|-------|-----------|-------------|-----------|-----------|--------|
-| **1. Fundamentos** | 4 | +40 | +36 | 49%→58% | 🔴 Crítico | ✅ 1A Completada |
-| **2. Seguridad** | 3 | +30 | +15 | 58%→64% | 🟠 Alta | ⏳ Pendiente |
-| **3. Avanzado** | 3 | +15 | +10 | 64%→66% | 🟡 Media | ⏳ Pendiente |
-| **4. Cobertura** | 3 | +5  | +55 | 66%→68% | 🟡 Media | ⏳ Pendiente |
-| **5. Excelencia** | 3 | +10 | +15 | 68%→72% | 🟢 Opcional | ⏳ Pendiente |
-| **TOTAL** | **16** | **+100** | **+131** | **72%** | - | **6% Completado** |
+| Hito               | Fases  | Scenarios | Tests JUnit | Cobertura | Prioridad   | Estado            |
+| ------------------ | ------ | --------- | ----------- | --------- | ----------- | ----------------- |
+| **1. Fundamentos** | 4      | +40       | +36         | 49%→58%   | 🔴 Crítico  | ✅ 1A Completada  |
+| **2. Seguridad**   | 3      | +30       | +15         | 58%→64%   | 🟠 Alta     | ⏳ Pendiente      |
+| **3. Avanzado**    | 3      | +15       | +10         | 64%→66%   | 🟡 Media    | ⏳ Pendiente      |
+| **4. Cobertura**   | 3      | +5        | +55         | 66%→68%   | 🟡 Media    | ⏳ Pendiente      |
+| **5. Excelencia**  | 3      | +10       | +15         | 68%→72%   | 🟢 Opcional | ⏳ Pendiente      |
+| **TOTAL**          | **16** | **+100**  | **+131**    | **72%**   | -           | **6% Completado** |
 
 ### Métricas Finales Esperadas
 
-| Métrica | Inicial | Final | Mejora |
-|---------|---------|-------|--------|
-| **Cobertura** | 49% | 72% | +23% (+47%) |
-| **Tests JUnit** | 94 | 225 | +131 (+139%) |
-| **Scenarios Cucumber** | 0 | 100 | +100 (∞%) |
-| **Features** | 0 | 12 | +12 |
-| **Step Definitions** | 0 | 15 clases | +15 |
-| **Documentación** | Básica | Completa | ⭐⭐⭐⭐⭐ |
+| Métrica                | Inicial | Final     | Mejora       |
+| ---------------------- | ------- | --------- | ------------ |
+| **Cobertura**          | 49%     | 72%       | +23% (+47%)  |
+| **Tests JUnit**        | 94      | 225       | +131 (+139%) |
+| **Scenarios Cucumber** | 0       | 100       | +100 (∞%)    |
+| **Features**           | 0       | 12        | +12          |
+| **Step Definitions**   | 0       | 15 clases | +15          |
+| **Documentación**      | Básica  | Completa  | ⭐⭐⭐⭐⭐   |
 
 ---
 
@@ -1848,12 +1863,14 @@ Hito 5: ░░░░░░░░░░░░░░░░░░░░ 0%  (0/3 fa
 ## ✅ PRÓXIMOS PASOS INMEDIATOS
 
 1. **Verificar que Fase 1A funciona:**
+
    ```bash
    ./mvnw verify -Dtest=CucumberIT
    firefox target/cucumber-reports/cucumber.html
    ```
 
 2. **Si todo OK, continuar con Fase 1B:**
+
    - Crear `divipol-municipios.feature`
    - Crear `DivipolMunicipiosSteps.java`
    - Ejecutar y verificar

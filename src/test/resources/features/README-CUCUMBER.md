@@ -159,6 +159,7 @@ firefox target/cucumber-reports/cucumber.html
 ```
 
 El reporte HTML incluye:
+
 - ✅ Scenarios passed/failed
 - ⏱️ Tiempo de ejecución
 - 📊 Estadísticas por feature
@@ -207,18 +208,19 @@ Característica: Consultar departamentos
 ```java
 @Dado("que la base de datos tiene datos de DIVIPOL")
 public void queBaseDeDatosTieneDatos() {
-    // Setup
+  // Setup
 }
 
 @Cuando("consulto el endpoint GET {string}")
 public void consultoEndpoint(String endpoint) {
-    actions = webTestClient.get().uri(endpoint).exchange();
+  actions = webTestClient.get().uri(endpoint).exchange();
 }
 
 @Entonces("recibo un código de respuesta {int}")
 public void reciboCodigoRespuesta(int statusCode) {
-    actions.expectStatus().isEqualTo(statusCode);
+  actions.expectStatus().isEqualTo(statusCode);
 }
+
 ```
 
 ---
@@ -228,11 +230,13 @@ public void reciboCodigoRespuesta(int statusCode) {
 ### 1. **Escribir en lenguaje de negocio:**
 
 ❌ **Mal:**
+
 ```gherkin
 Cuando hago POST a /api/divipol con header Authorization
 ```
 
 ✅ **Bien:**
+
 ```gherkin
 Cuando consulto los departamentos como usuario autenticado
 ```
@@ -278,6 +282,7 @@ Escenario: Validar códigos inválidos
 ### Problema: "Undefined step"
 
 **Error:**
+
 ```
 Step [consulto el endpoint] is undefined
 ```
@@ -288,17 +293,20 @@ Implementar el step definition en DivipolDepartamentosSteps.java
 ### Problema: "No features found"
 
 **Error:**
+
 ```
 No features found at [classpath:features]
 ```
 
 **Solución:**
+
 - Verificar que los .feature estén en `src/test/resources/features/`
 - Verificar que CucumberIT.java tenga `@SelectClasspathResource("features")`
 
 ### Problema: Tests no se ejecutan
 
 **Solución:**
+
 ```bash
 # Limpiar y recompilar
 ./mvnw clean compile test-compile
