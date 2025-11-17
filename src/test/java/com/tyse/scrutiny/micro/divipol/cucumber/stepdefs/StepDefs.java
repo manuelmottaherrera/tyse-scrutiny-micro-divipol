@@ -4,5 +4,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 public abstract class StepDefs {
 
-    protected WebTestClient.ResponseSpec actions;
+    // Static para compartir entre todas las instancias de step definitions
+    protected static WebTestClient.ResponseSpec actions;
 }

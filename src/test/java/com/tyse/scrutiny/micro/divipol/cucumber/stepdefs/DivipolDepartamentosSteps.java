@@ -2,7 +2,6 @@ package com.tyse.scrutiny.micro.divipol.cucumber.stepdefs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.tyse.scrutiny.micro.divipol.security.jwt.JwtAuthenticationTestUtils;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.DivipolDepartamentoDTO;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.es.Cuando;
@@ -12,78 +11,19 @@ import io.cucumber.java.es.Y;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
- * Step definitions para los escenarios de consulta de departamentos.
+ * Step definitions específicos para escenarios de consulta de departamentos.
  *
- * Estos steps implementan el lenguaje Gherkin definido en divipol-departamentos.feature
- * usando Cucumber con sintaxis en español.
+ * Esta clase solo define steps específicos de departamentos.
+ * Los steps comunes están en DivipolCommonSteps.
  */
 public class DivipolDepartamentosSteps extends StepDefs {
 
-    @Autowired
-    private WebTestClient webTestClient;
-
-    @Value("${jhipster.security.authentication.jwt.base64-secret}")
-    private String jwtKey;
-
     private List<DivipolDepartamentoDTO> departamentos;
-    private boolean authenticated = true;
 
-    // ===== GIVEN / DADO =====
-
-    @Dado("que la base de datos tiene cargados los datos de DIVIPOL")
-    public void queBaseDeDatosTieneDatosDeDivipol() {
-        // Los datos ya están cargados por Liquibase en el Testcontainer
-        // Este step es principalmente documentativo
-        assertThat(webTestClient).isNotNull();
-    }
-
-    @Dado("que soy un usuario autenticado")
-    public void queSoyUnUsuarioAutenticado() {
-        // Se generará un token JWT válido en el step "Cuando"
-        authenticated = true;
-    }
-
-    @Dado("que NO estoy autenticado")
-    public void queNoEstoyAutenticado() {
-        // No se aplica @WithMockUser, por lo tanto no hay autenticación
-        authenticated = false;
-    }
-
-    // ===== WHEN / CUANDO =====
-
-    @Cuando("consulto el endpoint GET {string}")
-    public void consultoElEndpointGET(String endpoint) {
-        WebTestClient.RequestHeadersSpec<?> request = webTestClient
-            .mutate()
-            .responseTimeout(Duration.ofSeconds(10))
-            .build()
-            .get()
-            .uri(endpoint)
-            .accept(MediaType.APPLICATION_JSON);
-
-        if (authenticated) {
-            // Usuario autenticado - agregar token JWT válido
-            String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
-            actions = request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token).exchange();
-        } else {
-            // Usuario NO autenticado - sin token
-            actions = request.exchange();
-        }
-    }
-
-    // ===== THEN / ENTONCES =====
-
-    @Entonces("recibo un código de respuesta {int}")
-    public void reciboUnCodigoDeRespuesta(int statusCode) {
-        actions.expectStatus().isEqualTo(statusCode);
-    }
+    // ===== STEPS ESPECÍFICOS DE DEPARTAMENTOS =====
 
     @Y("el content-type de la respuesta es {string}")
     public void elContentTypeDeLaRespuestaEs(String contentType) {
