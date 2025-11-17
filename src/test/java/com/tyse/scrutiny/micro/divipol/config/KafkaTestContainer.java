@@ -16,7 +16,11 @@ public class KafkaTestContainer implements InitializingBean, DisposableBean {
     @Override
     public void destroy() {
         if (null != kafkaContainer && kafkaContainer.isRunning()) {
+            LOG.debug("Closing Kafka test container...");
+            // Note: Spring will close Kafka connections before this method is called
+            // because DisposableBean has a higher precedence than JVM shutdown hooks
             kafkaContainer.close();
+            LOG.debug("Kafka test container closed successfully");
         }
     }
 
