@@ -32,6 +32,9 @@ jobs:
           restore-keys: ${{ runner.os }}-m2-divipol
 
       - name: Run Backend Tests
+        env:
+          # Fix Testcontainers hostname resolution in GitHub Actions
+          TESTCONTAINERS_HOST_OVERRIDE: localhost
         run: |
           chmod +x mvnw
           ./mvnw clean verify \
