@@ -48,6 +48,7 @@ Ejecuta el pipeline CI completo y hace push a Git **solo si todos los tests pasa
 - 🚀 Push automático si el CI pasa
 - ⏭️ Opción para saltarse CI (uso de emergencia)
 - 🎯 Soporte para diferentes remotes y branches
+- 📝 **Guarda toda la salida en archivo `.log`** para debugging
 
 **Uso:**
 
@@ -74,11 +75,24 @@ Ejecuta el pipeline CI completo y hace push a Git **solo si todos los tests pasa
 2. **CI Pipeline:** Ejecuta todos los tests
 3. **Git Push:** Solo si el CI pasó exitosamente
 
+**Logs:**
+
+Toda la salida del script se guarda en `logs/push_YYYYMMDD_HHMMSS.log` para facilitar el debugging:
+
+```bash
+# Ver el último log generado
+ls -lt logs/push_*.log | head -1
+
+# Ver logs en tiempo real durante la ejecución
+tail -f logs/push_*.log
+```
+
 **Si el CI falla:**
 
 - ❌ No se hace push
 - 📋 Muestra opciones para debuggear
 - 💡 Sugiere comandos para investigar
+- 📝 Consulta el archivo `.log` para ver detalles completos
 
 ---
 
