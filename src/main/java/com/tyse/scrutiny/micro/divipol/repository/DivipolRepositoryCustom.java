@@ -47,4 +47,34 @@ public interface DivipolRepositoryCustom {
      * Obtiene estadísticas de una zona específica
      */
     Mono<DivipolStatsDTO> getStatsByZona(Integer codDepto, Integer codMpio, Integer codZona);
+
+    /**
+     * Busca registros por nombre usando full-text search
+     */
+    Flux<DivipolSearchResultDTO> searchByName(String query, int page, int size);
+
+    /**
+     * Cuenta los resultados de búsqueda por nombre
+     */
+    Mono<Long> countSearchByName(String query);
+
+    /**
+     * Busca registros por prefijo del código divipol compuesto
+     */
+    Flux<DivipolSearchResultDTO> searchByCode(String codePrefix, int page, int size);
+
+    /**
+     * Cuenta los resultados de búsqueda por código
+     */
+    Mono<Long> countSearchByCode(String codePrefix);
+
+    /**
+     * Obtiene sugerencias de autocompletado por nombre
+     */
+    Flux<DivipolSearchResultDTO> getSuggestionsByName(String query, int limit);
+
+    /**
+     * Obtiene sugerencias de autocompletado por código
+     */
+    Flux<DivipolSearchResultDTO> getSuggestionsByCode(String codePrefix, int limit);
 }

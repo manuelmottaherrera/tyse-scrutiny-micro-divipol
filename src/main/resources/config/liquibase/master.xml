@@ -19,6 +19,7 @@
     <include file="config/liquibase/changelog/20251027141000_added_views_Divipol.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251027142000_added_entity_Divipol_data.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251027143000_add_sequence_Divipol.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251205100000_add_fulltext_search_divipol.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

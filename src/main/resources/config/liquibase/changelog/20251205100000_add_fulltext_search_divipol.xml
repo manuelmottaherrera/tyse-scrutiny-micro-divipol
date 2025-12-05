@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Migración para agregar soporte de Full-Text Search en PostgreSQL.
+        Crea columna tsvector, índice GIN y trigger de actualización.
+    -->
+
+    <changeSet id="20251205100000-1" author="jhipster">
+        <comment>Agregar columna search_vector de tipo tsvector a la tabla divipol</comment>
+        <sql>
+            ALTER TABLE divipol ADD COLUMN IF NOT EXISTS search_vector tsvector;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205100000-2" author="jhipster">
+        <comment>Poblar columna search_vector con datos existentes usando to_tsvector español</comment>
+        <sql>
+            UPDATE divipol SET search_vector =
+                to_tsvector('spanish',
+                    COALESCE(nomdepto, '') || ' ' ||
+                    COALESCE(nommipio, '') || ' ' ||
+                    COALESCE(nompuesto, '')
+                );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205100000-3" author="jhipster">
+        <comment>Crear índice GIN para búsquedas full-text eficientes</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_divipol_fulltext ON divipol USING gin(search_vector);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205100000-4" author="jhipster">
+        <comment>Crear función trigger para actualizar search_vector automáticamente</comment>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION divipol_search_vector_update()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.search_vector := to_tsvector('spanish',
+                    COALESCE(NEW.nomdepto, '') || ' ' ||
+                    COALESCE(NEW.nommipio, '') || ' ' ||
+                    COALESCE(NEW.nompuesto, '')
+                );
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205100000-5" author="jhipster">
+        <comment>Crear trigger que ejecuta la función en INSERT o UPDATE</comment>
+        <sql>
+            DROP TRIGGER IF EXISTS divipol_search_vector_trigger ON divipol;
+            CREATE TRIGGER divipol_search_vector_trigger
+                BEFORE INSERT OR UPDATE ON divipol
+                FOR EACH ROW
+                EXECUTE FUNCTION divipol_search_vector_update();
+        </sql>
+    </changeSet>
+
+    <changeSet id="20251205100000-6" author="jhipster">
+        <comment>Crear índice compuesto para búsqueda por código (prefijo)</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_divipol_codigo_compuesto
+            ON divipol (coddepto, codmipio, codzona, codpuesto);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -195,6 +195,94 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DivipolStatsDTO'
+
+  /divipol/search:
+    get:
+      tags:
+        - divipol
+      summary: Buscar registros de divipol
+      description: |
+        Busca registros de divipol por nombre (full-text search) o por código.
+        - mode=name: Búsqueda full-text en español (nomdepto, nommipio, nompuesto)
+        - mode=code: Búsqueda por prefijo del código divipol compuesto
+      operationId: searchDivipol
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda (mínimo 3 caracteres para modo name)
+          schema:
+            type: string
+            minLength: 1
+        - name: mode
+          in: query
+          required: false
+          description: Modo de búsqueda
+          schema:
+            type: string
+            enum: [name, code]
+            default: name
+        - name: page
+          in: query
+          required: false
+          description: Número de página (0-indexed)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: Tamaño de página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Resultados de búsqueda paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivipolSearchResultPage'
+        '400':
+          $ref: '#/components/responses/Problem'
+
+  /divipol/search/suggestions:
+    get:
+      tags:
+        - divipol
+      summary: Obtener sugerencias de autocompletado
+      description: Retorna hasta 5 sugerencias basadas en el término de búsqueda
+      operationId: getSuggestions
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda (mínimo 3 caracteres)
+          schema:
+            type: string
+            minLength: 3
+        - name: mode
+          in: query
+          required: false
+          description: Modo de búsqueda
+          schema:
+            type: string
+            enum: [name, code]
+            default: name
+      responses:
+        '200':
+          description: Lista de sugerencias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DivipolSearchResultDTO'
+                maxItems: 5
+
 components:
   responses:
     Problem:
@@ -370,6 +458,61 @@ components:
         potencialTotal:
           type: integer
           format: int64
+
+    DivipolSearchResultDTO:
+      type: object
+      description: Resultado de búsqueda de divipol
+      properties:
+        codigoDivipol:
+          type: string
+          description: Código divipol compuesto (9 dígitos)
+          example: '050010101'
+        tipo:
+          type: string
+          description: Tipo de registro
+          enum: [PAIS, DEPTO, MPIO, ZONA, PUESTO]
+        coddepto:
+          type: integer
+        codmipio:
+          type: integer
+        codzona:
+          type: integer
+        codpuesto:
+          type: string
+        nomdepto:
+          type: string
+        nommipio:
+          type: string
+        nompuesto:
+          type: string
+        potencialTotal:
+          type: integer
+          format: int64
+        mesas:
+          type: integer
+          format: int64
+
+    DivipolSearchResultPage:
+      type: object
+      description: Página de resultados de búsqueda
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/DivipolSearchResultDTO'
+        page:
+          type: integer
+          description: Número de página actual (0-indexed)
+        size:
+          type: integer
+          description: Tamaño de página
+        totalElements:
+          type: integer
+          format: int64
+          description: Total de elementos encontrados
+        totalPages:
+          type: integer
+          description: Total de páginas disponibles
 
   securitySchemes:
     jwt:
