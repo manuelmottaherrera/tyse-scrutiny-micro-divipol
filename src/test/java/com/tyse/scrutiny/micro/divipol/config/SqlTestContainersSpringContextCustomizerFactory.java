@@ -44,8 +44,12 @@ public class SqlTestContainersSpringContextCustomizerFactory implements ContextC
                         }
                     }
                     // Construir URL usando getHost() para compatibilidad con GitHub Actions
-                    // getHost() devuelve el host correcto según el entorno (localhost, host.docker.internal, etc.)
+                    // Usar 127.0.0.1 en lugar de "localhost" para evitar problemas de resolución DNS
+                    // en entornos Docker-in-Docker donde "localhost" puede no resolverse correctamente
                     String host = prodTestContainer.getTestContainer().getHost();
+                    if ("localhost".equals(host)) {
+                        host = "127.0.0.1";
+                    }
                     Integer port = prodTestContainer.getTestContainer().getMappedPort(5432);
                     String database = prodTestContainer.getTestContainer().getDatabaseName();
 
