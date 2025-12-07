@@ -43,12 +43,21 @@ public class SqlTestContainersSpringContextCustomizerFactory implements ContextC
                             throw new RuntimeException(e);
                         }
                     }
-                    testValues = testValues.and(
-                        "spring.r2dbc.url=" + prodTestContainer.getTestContainer().getJdbcUrl().replace("jdbc", "r2dbc") + ""
-                    );
+                    // Construir URL usando getHost() para compatibilidad con GitHub Actions
+                    // getHost() devuelve el host correcto según el entorno (localhost, host.docker.internal, etc.)
+                    String host = prodTestContainer.getTestContainer().getHost();
+                    Integer port = prodTestContainer.getTestContainer().getMappedPort(5432);
+                    String database = prodTestContainer.getTestContainer().getDatabaseName();
+
+                    String r2dbcUrl = String.format("r2dbc:postgresql://%s:%d/%s", host, port, database);
+                    String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, database);
+
+                    log.info("Testcontainers PostgreSQL - Host: {}, Port: {}, R2DBC URL: {}", host, port, r2dbcUrl);
+
+                    testValues = testValues.and("spring.r2dbc.url=" + r2dbcUrl);
                     testValues = testValues.and("spring.r2dbc.username=" + prodTestContainer.getTestContainer().getUsername());
                     testValues = testValues.and("spring.r2dbc.password=" + prodTestContainer.getTestContainer().getPassword());
-                    testValues = testValues.and("spring.liquibase.url=" + prodTestContainer.getTestContainer().getJdbcUrl() + "");
+                    testValues = testValues.and("spring.liquibase.url=" + jdbcUrl);
                 }
                 testValues.applyTo(context);
             }
