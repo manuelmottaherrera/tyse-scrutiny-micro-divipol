@@ -7,6 +7,7 @@ import com.tyse.scrutiny.micro.divipol.config.EmbeddedKafka;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -52,6 +53,7 @@ class TyseScrutinyMicroDivipolKafkaResourceIT {
     }
 
     @Test
+    @Disabled("kafkaProducer deshabilitado en tests - ver application.yml function.definition")
     void producesPooledMessages() throws Exception {
         assertThat(output.receive(1500, "kafkaProducer-out-0").getPayload()).isEqualTo("kafka_producer".getBytes());
     }
