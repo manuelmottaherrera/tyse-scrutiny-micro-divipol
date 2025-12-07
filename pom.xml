@@ -82,6 +82,8 @@
         <spring.profiles.active>dev</spring.profiles.active>
         <springdoc-openapi-starter-webflux-api.version>2.8.8</springdoc-openapi-starter-webflux-api.version>
         <testng.version>7.11.0</testng.version>
+        <!-- Default value for skipTests, can be overridden with -DskipTests -->
+        <skipTests>false</skipTests>
     </properties>
 
     <dependencyManagement>
@@ -548,6 +550,8 @@
                                 <goal>run</goal>
                             </goals>
                             <configuration>
+                                <!-- Respetar -DskipTests y -DskipITs para no ejecutar Cucumber -->
+                                <skip>${skipTests}</skip>
                                 <target>
                                     <echo message="Running JUnit Platform CLI"/>
                                     <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true" newenvironment="true" maxmemory="512m" classpathref="maven.test.classpath">
