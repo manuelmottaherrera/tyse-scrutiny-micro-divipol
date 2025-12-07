@@ -73,10 +73,12 @@ jobs:
   # ============================================================================
   # Job 2: Backend Tests
   # Ejecuta unit tests, integration tests y Cucumber BDD tests
+  # Solo se ejecuta si Liquibase Verification pasa (fail fast)
   # ============================================================================
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
+    needs: [liquibase-verification]
     timeout-minutes: 20
 
     steps:
