@@ -25,7 +25,9 @@ spring:
         enabled: false
       enabled: false
     function:
-      definition: kafkaConsumer;kafkaProducer
+      # Desactivar kafkaProducer en tests para evitar errores de "no subscribers"
+      # El producer es un Supplier que se ejecuta automáticamente cada segundo
+      definition: kafkaConsumer
     stream:
       kafka:
         binder:
@@ -39,9 +41,7 @@ spring:
           destination: sse-topic
           content-type: text/plain
           group: tyse-scrutiny-micro-divipol
-        kafkaProducer-out-0:
-          content-type: text/plain
-          group: tyse-scrutiny-micro-divipol
+        # kafkaProducer-out-0 deshabilitado en tests (ver function.definition)
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:
     contexts: test
