@@ -32,14 +32,15 @@ Característica: Consultar zonas por municipio
     Cuando consulto el endpoint GET "/api/divipol/zonas?codDepto=5&codMpio=1"
     Entonces recibo un código de respuesta 200
 
-  # Nota: El caso codDepto=999&codMpio=999 ya está cubierto por el escenario
-  # "Consultar zonas de municipio inexistente" arriba, por lo que no se duplica aquí.
-  Esquema del escenario: Validar parámetros de zonas
+  # Nota: Los casos de éxito (codDepto=5&codMpio=1) ya están cubiertos por
+  # "Consultar zonas de Cartagena" y "Consultar zonas con codZona=0" arriba.
+  # Este esquema solo valida los casos de error (códigos inválidos).
+  @validation
+  Esquema del escenario: Validar parámetros inválidos de zonas
     Cuando consulto el endpoint GET "/api/divipol/zonas?codDepto=<codDepto>&codMpio=<codMpio>"
     Entonces recibo un código de respuesta <codigo>
 
     Ejemplos:
       | codDepto | codMpio | codigo |
-      | 5        | 1       | 200    |
       | -1       | 1       | 400    |
       | 5        | -1      | 400    |
