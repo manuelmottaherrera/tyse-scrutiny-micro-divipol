@@ -14,6 +14,11 @@
         <sql>
             ALTER TABLE divipol ADD COLUMN IF NOT EXISTS search_vector tsvector;
         </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE divipol DROP COLUMN IF EXISTS search_vector;
+            </sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="20251205100000-2" author="jhipster">
@@ -26,6 +31,9 @@
                     COALESCE(nompuesto, '')
                 );
         </sql>
+        <rollback>
+            <!-- No requiere acción - los datos se eliminan cuando se dropea la columna -->
+        </rollback>
     </changeSet>
 
     <changeSet id="20251205100000-3" author="jhipster">
@@ -33,6 +41,11 @@
         <sql>
             CREATE INDEX IF NOT EXISTS idx_divipol_fulltext ON divipol USING gin(search_vector);
         </sql>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_divipol_fulltext;
+            </sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="20251205100000-4" author="jhipster">
@@ -50,6 +63,11 @@
             END;
             $$ LANGUAGE plpgsql;
         </sql>
+        <rollback>
+            <sql>
+                DROP FUNCTION IF EXISTS divipol_search_vector_update();
+            </sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="20251205100000-5" author="jhipster">
@@ -61,6 +79,11 @@
                 FOR EACH ROW
                 EXECUTE FUNCTION divipol_search_vector_update();
         </sql>
+        <rollback>
+            <sql>
+                DROP TRIGGER IF EXISTS divipol_search_vector_trigger ON divipol;
+            </sql>
+        </rollback>
     </changeSet>
 
     <changeSet id="20251205100000-6" author="jhipster">
@@ -69,6 +92,11 @@
             CREATE INDEX IF NOT EXISTS idx_divipol_codigo_compuesto
             ON divipol (coddepto, codmipio, codzona, codpuesto);
         </sql>
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_divipol_codigo_compuesto;
+            </sql>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

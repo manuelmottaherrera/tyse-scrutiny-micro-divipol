@@ -36,7 +36,9 @@
             <column name="direccion" type="varchar(60)"/>
             <column name="cordenadas_text" type="text"/>
         </createTable>
-        <rollback></rollback>
+        <rollback>
+            <dropTable tableName="divipol_load"/>
+        </rollback>
     </changeSet>
 
     <!-- Cargar datos desde CSV a tabla auxiliar -->
@@ -67,7 +69,9 @@
             <column name="direccion" type="string"/>
             <column name="cordenadas_text" type="string"/>
         </loadData>
-        <rollback></rollback>
+        <rollback>
+            <delete tableName="divipol_load"/>
+        </rollback>
     </changeSet>
 
     <!-- Insertar datos en tabla final con conversión de tipo point -->
@@ -89,13 +93,38 @@
                 END as cordenadas
             FROM divipol_load;
         </sql>
-        <rollback></rollback>
+        <rollback>
+            <delete tableName="divipol"/>
+        </rollback>
     </changeSet>
 
     <!-- Eliminar tabla auxiliar -->
     <changeSet id="20251027142000-4" author="jhipster">
         <dropTable tableName="divipol_load"/>
-        <rollback></rollback>
+        <rollback>
+            <!-- Recrear tabla auxiliar para permitir rollback de changesets anteriores -->
+            <createTable tableName="divipol_load">
+                <column name="iddivipol" type="integer"/>
+                <column name="clase" type="char(1)"/>
+                <column name="coddepto" type="integer"/>
+                <column name="codmipio" type="integer"/>
+                <column name="codzona" type="integer"/>
+                <column name="codpuesto" type="varchar(2)"/>
+                <column name="nomdepto" type="varchar(50)"/>
+                <column name="nommipio" type="varchar(50)"/>
+                <column name="nompuesto" type="varchar(100)"/>
+                <column name="nummesas" type="integer"/>
+                <column name="potfemenino" type="integer"/>
+                <column name="potmasculino" type="integer"/>
+                <column name="pottotal" type="integer"/>
+                <column name="jal" type="integer"/>
+                <column name="nomjal" type="varchar(30)"/>
+                <column name="indicador" type="integer"/>
+                <column name="expandida" type="integer"/>
+                <column name="direccion" type="varchar(60)"/>
+                <column name="cordenadas_text" type="text"/>
+            </createTable>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>
