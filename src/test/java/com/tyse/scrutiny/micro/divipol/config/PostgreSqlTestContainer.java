@@ -13,13 +13,14 @@ public class PostgreSqlTestContainer implements SqlTestContainer {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlTestContainer.class);
 
-    private PostgreSQLContainer<?> postgreSQLContainer;
+    // Singleton estático para garantizar que el contenedor se comparte correctamente
+    // entre todos los tests y la conexión R2DBC no pierde la referencia al host/puerto
+    private static PostgreSQLContainer<?> postgreSQLContainer;
 
     @Override
     public void destroy() {
-        if (null != postgreSQLContainer && postgreSQLContainer.isRunning()) {
-            postgreSQLContainer.stop();
-        }
+        // No destruir el contenedor singleton - se limpia al finalizar la JVM
+        // Esto evita problemas de reconexión durante la ejecución de tests
     }
 
     @Override
@@ -29,7 +30,6 @@ public class PostgreSqlTestContainer implements SqlTestContainer {
                 .withDatabaseName("tyseScrutinyMicroDivipol")
                 .withTmpFs(Collections.singletonMap("/testtmpfs", "rw"))
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
-                .withReuse(true)
                 // Espera explícita: Wait.forLogMessage es más confiable que forListeningPort
                 // porque garantiza que PostgreSQL ha terminado su inicialización completa
                 .waitingFor(
