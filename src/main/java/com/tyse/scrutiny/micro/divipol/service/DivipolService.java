@@ -2,12 +2,17 @@ package com.tyse.scrutiny.micro.divipol.service;
 
 import com.tyse.scrutiny.micro.divipol.repository.DivipolRepository;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.*;
+import com.tyse.scrutiny.micro.divipol.service.export.DivipolExportService;
 import com.tyse.scrutiny.micro.divipol.service.util.DivipolValidationUtil;
 import com.tyse.scrutiny.micro.divipol.web.api.DivipolApiDelegate;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,9 +29,11 @@ public class DivipolService implements DivipolApiDelegate {
     private static final Logger LOG = LoggerFactory.getLogger(DivipolService.class);
 
     private final DivipolRepository divipolRepository;
+    private final DivipolExportService exportService;
 
-    public DivipolService(DivipolRepository divipolRepository) {
+    public DivipolService(DivipolRepository divipolRepository, DivipolExportService exportService) {
         this.divipolRepository = divipolRepository;
+        this.exportService = exportService;
     }
 
     @Override
@@ -213,5 +220,78 @@ public class DivipolService implements DivipolApiDelegate {
         }
 
         return Mono.just(ResponseEntity.ok(suggestions));
+    }
+
+    // =====================================================
+    // Métodos de Exportación
+    // =====================================================
+
+    @Override
+    public Mono<ResponseEntity<Resource>> exportFiltersToCsv(
+        Integer codDepto,
+        Integer codMpio,
+        Integer codZona,
+        ServerWebExchange exchange
+    ) {
+        LOG.debug("REST request to export filters to CSV: depto={}, mpio={}, zona={}", codDepto, codMpio, codZona);
+
+        return exportService
+            .exportFiltersToCsv(codDepto, codMpio, codZona)
+            .map(bytes -> buildFileResponse(bytes, "divipol-reporte.csv", "text/csv"));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Resource>> exportFiltersToPdf(
+        Integer codDepto,
+        Integer codMpio,
+        Integer codZona,
+        ServerWebExchange exchange
+    ) {
+        LOG.debug("REST request to export filters to PDF: depto={}, mpio={}, zona={}", codDepto, codMpio, codZona);
+
+        return exportService
+            .exportFiltersToPdf(codDepto, codMpio, codZona)
+            .map(bytes -> buildFileResponse(bytes, "divipol-reporte.pdf", "application/pdf"));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Resource>> exportSearchToCsv(
+        String q,
+        String mode,
+        Integer page,
+        Integer size,
+        Boolean exportAll,
+        ServerWebExchange exchange
+    ) {
+        LOG.debug("REST request to export search to CSV: q={}, mode={}, exportAll={}", q, mode, exportAll);
+
+        return exportService
+            .exportSearchToCsv(q, mode, page, size, exportAll)
+            .map(bytes -> buildFileResponse(bytes, "divipol-busqueda.csv", "text/csv"));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Resource>> exportSearchToPdf(
+        String q,
+        String mode,
+        Integer page,
+        Integer size,
+        Boolean exportAll,
+        ServerWebExchange exchange
+    ) {
+        LOG.debug("REST request to export search to PDF: q={}, mode={}, exportAll={}", q, mode, exportAll);
+
+        return exportService
+            .exportSearchToPdf(q, mode, page, size, exportAll)
+            .map(bytes -> buildFileResponse(bytes, "divipol-busqueda.pdf", "application/pdf"));
+    }
+
+    private ResponseEntity<Resource> buildFileResponse(byte[] bytes, String filename, String contentType) {
+        ByteArrayResource resource = new ByteArrayResource(bytes);
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(contentType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+            .contentLength(bytes.length)
+            .body(resource);
     }
 }

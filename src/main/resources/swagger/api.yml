@@ -283,6 +283,194 @@ paths:
                   $ref: '#/components/schemas/DivipolSearchResultDTO'
                 maxItems: 5
 
+  # =====================================================
+  # Endpoints de Exportación de Reportes
+  # =====================================================
+
+  /divipol/export/filters/csv:
+    get:
+      tags:
+        - divipol-export
+      summary: Exportar datos de filtros a CSV
+      description: |
+        Genera un archivo CSV con los datos del modo filtros.
+        Incluye la tabla de datos según el nivel de filtro y las estadísticas.
+      operationId: exportFiltersToCsv
+      parameters:
+        - name: codDepto
+          in: query
+          required: false
+          description: Código del departamento
+          schema:
+            type: integer
+        - name: codMpio
+          in: query
+          required: false
+          description: Código del municipio
+          schema:
+            type: integer
+        - name: codZona
+          in: query
+          required: false
+          description: Código de la zona
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Archivo CSV generado exitosamente
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /divipol/export/filters/pdf:
+    get:
+      tags:
+        - divipol-export
+      summary: Exportar datos de filtros a PDF
+      description: |
+        Genera un archivo PDF con los datos del modo filtros.
+        Incluye la tabla de datos según el nivel de filtro y las estadísticas.
+      operationId: exportFiltersToPdf
+      parameters:
+        - name: codDepto
+          in: query
+          required: false
+          description: Código del departamento
+          schema:
+            type: integer
+        - name: codMpio
+          in: query
+          required: false
+          description: Código del municipio
+          schema:
+            type: integer
+        - name: codZona
+          in: query
+          required: false
+          description: Código de la zona
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Archivo PDF generado exitosamente
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /divipol/export/search/csv:
+    get:
+      tags:
+        - divipol-export
+      summary: Exportar resultados de búsqueda a CSV
+      description: |
+        Genera un archivo CSV con los resultados de búsqueda.
+        Si exportAll=true, exporta todos los resultados (máximo 10,000).
+        Si exportAll=false, exporta solo la página actual.
+      operationId: exportSearchToCsv
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: false
+          description: Modo de búsqueda
+          schema:
+            type: string
+            enum: [name, code]
+            default: name
+        - name: page
+          in: query
+          required: false
+          description: Número de página (usado si exportAll=false)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: Tamaño de página (usado si exportAll=false)
+          schema:
+            type: integer
+            default: 20
+        - name: exportAll
+          in: query
+          required: false
+          description: Si es true, exporta todos los resultados sin paginación
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Archivo CSV generado exitosamente
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /divipol/export/search/pdf:
+    get:
+      tags:
+        - divipol-export
+      summary: Exportar resultados de búsqueda a PDF
+      description: |
+        Genera un archivo PDF con los resultados de búsqueda.
+        Si exportAll=true, exporta todos los resultados (máximo 10,000).
+        Si exportAll=false, exporta solo la página actual.
+      operationId: exportSearchToPdf
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: false
+          description: Modo de búsqueda
+          schema:
+            type: string
+            enum: [name, code]
+            default: name
+        - name: page
+          in: query
+          required: false
+          description: Número de página (usado si exportAll=false)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: Tamaño de página (usado si exportAll=false)
+          schema:
+            type: integer
+            default: 20
+        - name: exportAll
+          in: query
+          required: false
+          description: Si es true, exporta todos los resultados sin paginación
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Archivo PDF generado exitosamente
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
 components:
   responses:
     Problem:
