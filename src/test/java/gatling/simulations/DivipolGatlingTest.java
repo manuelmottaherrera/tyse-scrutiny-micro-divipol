@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
  * - Hierarchical navigation (departamentos → municipios → zonas → puestos)
  * - Search and suggestions
  * - Statistics at different levels
+ * - Export operations (CSV and PDF)
  *
  * Run with:
  *   ./mvnw gatling:test
@@ -36,9 +37,10 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
  */
 public class DivipolGatlingTest extends Simulation {
 
-    // JWT Configuration - same secret as application-dev.yml
+    // JWT Configuration - same secret as Consul config/application/data
+    // Note: Consul has priority over application-dev.yml
     private static final String JWT_BASE64_SECRET =
-        "NzRhM2MwNGI0Y2ZhYTBjM2E4ZWYwYzMzZTBlZTcyZGU1ZDU0MzZhMDBlYzIwOTA5OGFkNDcxYjEwOGUzZGExMGRhNDAxMDk3YTJlOWZiMDAyYjhlNTkyNzk3YjhlMTAxMjQ2ODE5ZmJkNjM3MjJhNDRkY2Q4ZTNjMmRiMDk0NmI=";
+        "YWQ5YzhhNzcwN2JjOGRjMTQ0YTMyNzFhYTMyNThhZDA3NWRlMjI2NjlmN2QzOGQxYTI0NmE2OGNlMTViMWZkZTgwNDI4NjAzYTYyZjFlY2FjY2Q5YTIzZDI3NGRmYmNhZjNkMTFkYmU0YmZjOGY5MTY5OTM1NzAxYmEzZThiM2E=";
     private static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
     private static final String AUTHORITIES_CLAIM = "auth";
 
@@ -80,13 +82,19 @@ public class DivipolGatlingTest extends Simulation {
     // Headers for authenticated requests (JWT token pre-generated)
     Map<String, String> headersHttpAuthenticated = Map.of("Accept", "application/json", "Authorization", "Bearer " + jwtToken);
 
+    // Headers for CSV export requests
+    Map<String, String> headersCsvExport = Map.of("Accept", "text/csv", "Authorization", "Bearer " + jwtToken);
+
+    // Headers for PDF export requests
+    Map<String, String> headersPdfExport = Map.of("Accept", "application/pdf", "Authorization", "Bearer " + jwtToken);
+
     // ========== SCENARIO 1: HIERARCHICAL NAVIGATION ==========
     ChainBuilder hierarchicalNavigation = exec(
         http("01. GET /divipol/departamentos")
             .get("/api/divipol/departamentos")
             .headers(headersHttpAuthenticated)
             .check(status().is(200))
-            .check(jsonPath("$[0].codDepto").exists())
+            .check(jsonPath("$[0].coddepto").exists())
     )
         .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
         .exec(
@@ -173,11 +181,66 @@ public class DivipolGatlingTest extends Simulation {
         )
         .pause(1);
 
+    // ========== SCENARIO 4: EXPORT OPERATIONS ==========
+    ChainBuilder exportOperations = exec(
+        http("12. GET /divipol/export/filters/csv (all departamentos)")
+            .get("/api/divipol/export/filters/csv")
+            .headers(headersCsvExport)
+            .check(status().is(200))
+            .check(header("Content-Type").is("text/csv"))
+    )
+        .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
+        .exec(
+            http("13. GET /divipol/export/filters/pdf (all departamentos)")
+                .get("/api/divipol/export/filters/pdf")
+                .headers(headersPdfExport)
+                .check(status().is(200))
+                .check(header("Content-Type").is("application/pdf"))
+        )
+        .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
+        .exec(
+            http("14. GET /divipol/export/filters/csv?codDepto=11 (Bogota)")
+                .get("/api/divipol/export/filters/csv")
+                .queryParam("codDepto", "11")
+                .headers(headersCsvExport)
+                .check(status().is(200))
+        )
+        .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
+        .exec(
+            http("15. GET /divipol/export/search/csv?q=BOGOTA (name search)")
+                .get("/api/divipol/export/search/csv")
+                .queryParam("q", "BOGOTA")
+                .queryParam("mode", "name")
+                .headers(headersCsvExport)
+                .check(status().is(200))
+        )
+        .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
+        .exec(
+            http("16. GET /divipol/export/search/pdf?q=11&mode=code (code search)")
+                .get("/api/divipol/export/search/pdf")
+                .queryParam("q", "11")
+                .queryParam("mode", "code")
+                .headers(headersPdfExport)
+                .check(status().is(200))
+        )
+        .pause(Duration.ofMillis(500), Duration.ofSeconds(1))
+        .exec(
+            http("17. GET /divipol/export/search/csv?exportAll=true (export all)")
+                .get("/api/divipol/export/search/csv")
+                .queryParam("q", "ESCUELA")
+                .queryParam("mode", "name")
+                .queryParam("exportAll", "true")
+                .headers(headersCsvExport)
+                .check(status().is(200))
+        )
+        .pause(1);
+
     // ========== COMBINED SCENARIO ==========
     ScenarioBuilder divipolScenario = scenario("Divipol API Performance Test")
         .exec(hierarchicalNavigation)
         .exec(searchOperations)
-        .exec(statisticsOperations);
+        .exec(statisticsOperations)
+        .exec(exportOperations);
 
     // ========== LOAD CONFIGURATION ==========
     {
