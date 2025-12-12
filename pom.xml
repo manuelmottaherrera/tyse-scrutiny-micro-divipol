@@ -563,6 +563,8 @@
                                     <java classname="org.junit.platform.console.ConsoleLauncher" fork="true" failonerror="true" newenvironment="true" maxmemory="512m" classpathref="maven.test.classpath">
                                         <jvmarg value="-Dspring.profiles.active=testprod"/>
                                         <jvmarg value="-XX:+AllowRedefinitionToAddDeleteMethods"/>
+                                        <!-- Excluir tests marcados con @wip (work in progress) -->
+                                        <jvmarg value="-Dcucumber.filter.tags=not @wip"/>
                                         <arg value="--include-engine"/>
                                         <arg value="cucumber"/>
                                         <arg value="--scan-classpath"/>

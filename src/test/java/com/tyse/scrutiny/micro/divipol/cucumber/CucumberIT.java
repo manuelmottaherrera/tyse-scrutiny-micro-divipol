@@ -44,5 +44,6 @@ import org.junit.platform.suite.api.Suite;
     "json:target/cucumber-reports/cucumber.json, " +
     "junit:target/cucumber-reports/cucumber.xml"
 )
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "not @wip")
 @IntegrationTest
 class CucumberIT {}

@@ -265,6 +265,21 @@ public class DivipolService implements DivipolApiDelegate {
     ) {
         LOG.debug("REST request to export search to CSV: q={}, mode={}, exportAll={}", q, mode, exportAll);
 
+        // Validaciones (igual que searchDivipol)
+        if (q == null || q.trim().isEmpty()) {
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El término de búsqueda es requerido"));
+        }
+
+        String searchMode = mode != null ? mode : MODE_NAME;
+        if (MODE_NAME.equals(searchMode) && q.trim().length() < MIN_QUERY_LENGTH_NAME) {
+            return Mono.error(
+                new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La búsqueda por nombre requiere al menos " + MIN_QUERY_LENGTH_NAME + " caracteres"
+                )
+            );
+        }
+
         return exportService
             .exportSearchToCsv(q, mode, page, size, exportAll)
             .map(bytes -> buildFileResponse(bytes, "divipol-busqueda.csv", "text/csv"));
@@ -280,6 +295,21 @@ public class DivipolService implements DivipolApiDelegate {
         ServerWebExchange exchange
     ) {
         LOG.debug("REST request to export search to PDF: q={}, mode={}, exportAll={}", q, mode, exportAll);
+
+        // Validaciones (igual que searchDivipol)
+        if (q == null || q.trim().isEmpty()) {
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "El término de búsqueda es requerido"));
+        }
+
+        String searchMode = mode != null ? mode : MODE_NAME;
+        if (MODE_NAME.equals(searchMode) && q.trim().length() < MIN_QUERY_LENGTH_NAME) {
+            return Mono.error(
+                new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La búsqueda por nombre requiere al menos " + MIN_QUERY_LENGTH_NAME + " caracteres"
+                )
+            );
+        }
 
         return exportService
             .exportSearchToPdf(q, mode, page, size, exportAll)
