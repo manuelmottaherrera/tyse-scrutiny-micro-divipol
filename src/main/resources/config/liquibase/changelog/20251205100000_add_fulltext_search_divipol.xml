@@ -7,7 +7,16 @@
     <!--
         Migración para agregar soporte de Full-Text Search en PostgreSQL.
         Crea columna tsvector, índice GIN y trigger de actualización.
+        Usa extensión unaccent para normalizar búsquedas (MEDELLIN = MEDELLÍN).
     -->
+
+    <changeSet id="20251205100000-0" author="jhipster">
+        <comment>Crear extensión unaccent para normalizar búsquedas sin tildes</comment>
+        <sql>CREATE EXTENSION IF NOT EXISTS unaccent;</sql>
+        <rollback>
+            <sql>DROP EXTENSION IF EXISTS unaccent;</sql>
+        </rollback>
+    </changeSet>
 
     <changeSet id="20251205100000-1" author="jhipster">
         <comment>Agregar columna search_vector de tipo tsvector a la tabla divipol</comment>
@@ -22,13 +31,13 @@
     </changeSet>
 
     <changeSet id="20251205100000-2" author="jhipster">
-        <comment>Poblar columna search_vector con datos existentes usando to_tsvector español</comment>
+        <comment>Poblar columna search_vector con datos existentes usando to_tsvector español y unaccent</comment>
         <sql>
             UPDATE divipol SET search_vector =
                 to_tsvector('spanish',
-                    COALESCE(nomdepto, '') || ' ' ||
+                    unaccent(COALESCE(nomdepto, '') || ' ' ||
                     COALESCE(nommipio, '') || ' ' ||
-                    COALESCE(nompuesto, '')
+                    COALESCE(nompuesto, ''))
                 );
         </sql>
         <rollback>
@@ -49,15 +58,15 @@
     </changeSet>
 
     <changeSet id="20251205100000-4" author="jhipster">
-        <comment>Crear función trigger para actualizar search_vector automáticamente</comment>
+        <comment>Crear función trigger para actualizar search_vector automáticamente con unaccent</comment>
         <sql splitStatements="false">
             CREATE OR REPLACE FUNCTION divipol_search_vector_update()
             RETURNS TRIGGER AS $$
             BEGIN
                 NEW.search_vector := to_tsvector('spanish',
-                    COALESCE(NEW.nomdepto, '') || ' ' ||
+                    unaccent(COALESCE(NEW.nomdepto, '') || ' ' ||
                     COALESCE(NEW.nommipio, '') || ' ' ||
-                    COALESCE(NEW.nompuesto, '')
+                    COALESCE(NEW.nompuesto, ''))
                 );
                 RETURN NEW;
             END;

@@ -235,7 +235,6 @@ class DivipolExportIT {
 
         @Test
         @DisplayName("Debe exportar resultados de búsqueda por nombre a CSV")
-        @Disabled("Full-text search with Spanish dictionary fails in Testcontainers - needs investigation")
         void shouldExportSearchByNameToCsv() {
             byte[] csvBytes = webTestClient
                 .get()

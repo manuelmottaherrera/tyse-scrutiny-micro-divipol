@@ -301,7 +301,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
     public Flux<DivipolSearchResultDTO> searchByName(String query, int page, int size) {
         String sql =
             SEARCH_SELECT +
-            "WHERE search_vector @@ plainto_tsquery('spanish', :query) " +
+            "WHERE search_vector @@ plainto_tsquery('spanish', unaccent(:query)) " +
             "ORDER BY coddepto, codmipio, codzona, codpuesto " +
             "LIMIT :limit OFFSET :offset";
 
@@ -316,7 +316,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
 
     @Override
     public Mono<Long> countSearchByName(String query) {
-        String sql = "SELECT COUNT(*) AS total FROM divipol " + "WHERE search_vector @@ plainto_tsquery('spanish', :query)";
+        String sql = "SELECT COUNT(*) AS total FROM divipol " + "WHERE search_vector @@ plainto_tsquery('spanish', unaccent(:query))";
 
         return databaseClient.sql(sql).bind("query", query).map(row -> row.get("total", Long.class)).one().defaultIfEmpty(0L);
     }
@@ -351,8 +351,8 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
     public Flux<DivipolSearchResultDTO> getSuggestionsByName(String query, int limit) {
         String sql =
             SEARCH_SELECT +
-            "WHERE search_vector @@ plainto_tsquery('spanish', :query) " +
-            "ORDER BY ts_rank(search_vector, plainto_tsquery('spanish', :query)) DESC " +
+            "WHERE search_vector @@ plainto_tsquery('spanish', unaccent(:query)) " +
+            "ORDER BY ts_rank(search_vector, plainto_tsquery('spanish', unaccent(:query))) DESC " +
             "LIMIT :limit";
 
         return databaseClient.sql(sql).bind("query", query).bind("limit", limit).map(this::mapSearchResult).all();
