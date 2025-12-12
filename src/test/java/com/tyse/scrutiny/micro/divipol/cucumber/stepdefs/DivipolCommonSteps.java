@@ -3,6 +3,7 @@ package com.tyse.scrutiny.micro.divipol.cucumber.stepdefs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.tyse.scrutiny.micro.divipol.security.jwt.JwtAuthenticationTestUtils;
+import io.cucumber.java.Before;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
@@ -28,7 +29,18 @@ public class DivipolCommonSteps extends StepDefs {
     @Value("${jhipster.security.authentication.jwt.base64-secret}")
     protected String jwtKey;
 
-    protected boolean authenticated = true;
+    // Nota: 'authenticated' se hereda de StepDefs (estático, compartido)
+
+    // ===== HOOK PARA RESETEAR ESTADO =====
+
+    @Before
+    public void resetState() {
+        // Resetear estado antes de cada escenario
+        authenticated = true;
+        actions = null;
+        responseBytes = null;
+        responseContentType = null;
+    }
 
     // ===== STEPS COMUNES =====
 
