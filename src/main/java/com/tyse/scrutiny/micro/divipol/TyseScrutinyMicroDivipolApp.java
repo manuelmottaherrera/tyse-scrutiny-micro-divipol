@@ -65,6 +65,9 @@ public class TyseScrutinyMicroDivipolApp {
      * @param args the command line arguments.
      */
     public static void main(String[] args) {
+        // Configurar modo headless para generación de PDF en contenedores sin servidor gráfico
+        System.setProperty("java.awt.headless", "true");
+
         SpringApplication app = new SpringApplication(TyseScrutinyMicroDivipolApp.class);
         DefaultProfileUtil.addDefaultProfile(app);
         Environment env = app.run(args).getEnvironment();

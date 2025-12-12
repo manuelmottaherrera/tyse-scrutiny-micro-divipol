@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Servicio para exportar datos de DIVIPOL a CSV y PDF.
@@ -136,7 +137,11 @@ public class DivipolExportService {
             .findAllDepartamentos()
             .collectList()
             .zipWith(divipolRepository.getGeneralStats())
-            .map(tuple -> pdfGenerator.generateDepartamentosReport(tuple.getT1(), tuple.getT2()));
+            .flatMap(tuple ->
+                Mono.fromCallable(() -> pdfGenerator.generateDepartamentosReport(tuple.getT1(), tuple.getT2())).subscribeOn(
+                    Schedulers.boundedElastic()
+                )
+            );
     }
 
     private Mono<byte[]> exportMunicipiosToPdf(Integer codDepto) {
@@ -144,10 +149,12 @@ public class DivipolExportService {
             .findMunicipiosByDepartamento(codDepto)
             .collectList()
             .zipWith(divipolRepository.getStatsByDepartamento(codDepto))
-            .map(tuple -> {
+            .flatMap(tuple -> {
                 List<DivipolMunicipioDTO> data = tuple.getT1();
                 String nomDepto = data.isEmpty() ? "" : data.get(0).getNomdepto();
-                return pdfGenerator.generateMunicipiosReport(data, tuple.getT2(), nomDepto);
+                return Mono.fromCallable(() -> pdfGenerator.generateMunicipiosReport(data, tuple.getT2(), nomDepto)).subscribeOn(
+                    Schedulers.boundedElastic()
+                );
             });
     }
 
@@ -156,11 +163,13 @@ public class DivipolExportService {
             .findZonasByMunicipio(codDepto, codMpio)
             .collectList()
             .zipWith(divipolRepository.getStatsByMunicipio(codDepto, codMpio))
-            .map(tuple -> {
+            .flatMap(tuple -> {
                 List<DivipolZonaDTO> data = tuple.getT1();
                 String nomDepto = data.isEmpty() ? "" : data.get(0).getNomdepto();
                 String nomMpio = data.isEmpty() ? "" : data.get(0).getNommipio();
-                return pdfGenerator.generateZonasReport(data, tuple.getT2(), nomDepto, nomMpio);
+                return Mono.fromCallable(() -> pdfGenerator.generateZonasReport(data, tuple.getT2(), nomDepto, nomMpio)).subscribeOn(
+                    Schedulers.boundedElastic()
+                );
             });
     }
 
@@ -169,11 +178,12 @@ public class DivipolExportService {
             .findPuestosByZona(codDepto, codMpio, codZona)
             .collectList()
             .zipWith(divipolRepository.getStatsByZona(codDepto, codMpio, codZona))
-            .map(tuple -> {
+            .flatMap(tuple -> {
                 List<DivipolPuestoDTO> data = tuple.getT1();
                 String nomDepto = data.isEmpty() ? "" : data.get(0).getNomdepto();
                 String nomMpio = data.isEmpty() ? "" : data.get(0).getNommipio();
-                return pdfGenerator.generatePuestosReport(data, tuple.getT2(), nomDepto, nomMpio, codZona);
+                return Mono.fromCallable(() -> pdfGenerator.generatePuestosReport(data, tuple.getT2(), nomDepto, nomMpio, codZona)
+                ).subscribeOn(Schedulers.boundedElastic());
             });
     }
 
@@ -221,13 +231,21 @@ public class DivipolExportService {
         if (exportAllResults) {
             return getSearchResultsForExport(q, searchMode, 0, MAX_EXPORT_RECORDS)
                 .zipWith(getSearchCount(q, searchMode))
-                .map(tuple -> pdfGenerator.generateSearchReport(tuple.getT1(), q, searchMode, tuple.getT2()));
+                .flatMap(tuple ->
+                    Mono.fromCallable(() -> pdfGenerator.generateSearchReport(tuple.getT1(), q, searchMode, tuple.getT2())).subscribeOn(
+                        Schedulers.boundedElastic()
+                    )
+                );
         } else {
             int pageNum = page != null ? page : 0;
             int pageSize = size != null ? size : 20;
             return getSearchResultsForExport(q, searchMode, pageNum, pageSize)
                 .zipWith(getSearchCount(q, searchMode))
-                .map(tuple -> pdfGenerator.generateSearchReport(tuple.getT1(), q, searchMode, tuple.getT2()));
+                .flatMap(tuple ->
+                    Mono.fromCallable(() -> pdfGenerator.generateSearchReport(tuple.getT1(), q, searchMode, tuple.getT2())).subscribeOn(
+                        Schedulers.boundedElastic()
+                    )
+                );
         }
     }
 

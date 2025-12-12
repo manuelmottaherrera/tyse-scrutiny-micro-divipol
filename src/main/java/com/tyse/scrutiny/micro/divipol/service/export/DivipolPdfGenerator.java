@@ -5,34 +5,101 @@ import com.lowagie.text.pdf.*;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.*;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * Generador de reportes PDF usando OpenPDF.
+ * Usa fuentes Liberation Sans embebidas para compatibilidad en contenedores.
  */
 @Component
 public class DivipolPdfGenerator {
 
-    private static final Font TITLE_FONT = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(51, 51, 51));
-    private static final Font SUBTITLE_FONT = new Font(Font.HELVETICA, 12, Font.BOLD, new Color(102, 102, 102));
-    private static final Font HEADER_FONT = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
-    private static final Font CELL_FONT = new Font(Font.HELVETICA, 9, Font.NORMAL, new Color(51, 51, 51));
-    private static final Font STATS_LABEL_FONT = new Font(Font.HELVETICA, 9, Font.BOLD, new Color(102, 102, 102));
-    private static final Font STATS_VALUE_FONT = new Font(Font.HELVETICA, 11, Font.BOLD, new Color(51, 51, 51));
-    private static final Font FOOTER_FONT = new Font(Font.HELVETICA, 8, Font.ITALIC, new Color(128, 128, 128));
+    private static final Logger LOG = LoggerFactory.getLogger(DivipolPdfGenerator.class);
 
+    // Colores (funcionan en modo headless)
     private static final Color HEADER_BG = new Color(52, 73, 94);
     private static final Color ROW_EVEN = new Color(245, 245, 245);
     private static final Color ROW_ODD = Color.WHITE;
     private static final Color STATS_BG = new Color(236, 240, 241);
+    private static final Color TITLE_COLOR = new Color(51, 51, 51);
+    private static final Color SUBTITLE_COLOR = new Color(102, 102, 102);
+    private static final Color FOOTER_COLOR = new Color(128, 128, 128);
+    private static final Color BORDER_COLOR = new Color(220, 220, 220);
+
+    // Fuentes inicializadas lazily para evitar problemas de carga
+    private Font titleFont;
+    private Font subtitleFont;
+    private Font headerFont;
+    private Font cellFont;
+    private Font statsLabelFont;
+    private Font statsValueFont;
+    private Font footerFont;
+    private volatile boolean fontsInitialized = false;
+
+    /**
+     * Inicializa las fuentes embebidas de manera thread-safe.
+     * Intenta cargar Liberation Sans, con fallback a Helvetica built-in.
+     */
+    private synchronized void initFonts() {
+        if (fontsInitialized) {
+            return;
+        }
+
+        try {
+            // Intentar cargar fuentes Liberation Sans embebidas
+            BaseFont baseFont = loadEmbeddedFont("/fonts/LiberationSans-Regular.ttf");
+            BaseFont baseFontBold = loadEmbeddedFont("/fonts/LiberationSans-Bold.ttf");
+
+            titleFont = new Font(baseFontBold, 18, Font.NORMAL, TITLE_COLOR);
+            subtitleFont = new Font(baseFontBold, 12, Font.NORMAL, SUBTITLE_COLOR);
+            headerFont = new Font(baseFontBold, 10, Font.NORMAL, Color.WHITE);
+            cellFont = new Font(baseFont, 9, Font.NORMAL, TITLE_COLOR);
+            statsLabelFont = new Font(baseFontBold, 9, Font.NORMAL, SUBTITLE_COLOR);
+            statsValueFont = new Font(baseFontBold, 11, Font.NORMAL, TITLE_COLOR);
+            footerFont = new Font(baseFont, 8, Font.ITALIC, FOOTER_COLOR);
+
+            LOG.info("Fuentes Liberation Sans cargadas correctamente para generación de PDF");
+        } catch (Exception e) {
+            LOG.warn("No se pudieron cargar fuentes embebidas, usando Helvetica como fallback: {}", e.getMessage());
+            initFallbackFonts();
+        }
+
+        fontsInitialized = true;
+    }
+
+    private BaseFont loadEmbeddedFont(String resourcePath) throws DocumentException, IOException {
+        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
+            if (is == null) {
+                throw new IOException("Fuente no encontrada en classpath: " + resourcePath);
+            }
+            byte[] fontBytes = is.readAllBytes();
+            return BaseFont.createFont(resourcePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, fontBytes, null);
+        }
+    }
+
+    private void initFallbackFonts() {
+        // Usar fuentes Helvetica built-in (funcionan en modo headless)
+        titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, TITLE_COLOR);
+        subtitleFont = new Font(Font.HELVETICA, 12, Font.BOLD, SUBTITLE_COLOR);
+        headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
+        cellFont = new Font(Font.HELVETICA, 9, Font.NORMAL, TITLE_COLOR);
+        statsLabelFont = new Font(Font.HELVETICA, 9, Font.BOLD, SUBTITLE_COLOR);
+        statsValueFont = new Font(Font.HELVETICA, 11, Font.BOLD, TITLE_COLOR);
+        footerFont = new Font(Font.HELVETICA, 8, Font.ITALIC, FOOTER_COLOR);
+    }
 
     /**
      * Genera PDF para modo filtros con departamentos.
      */
     public byte[] generateDepartamentosReport(List<DivipolDepartamentoDTO> data, DivipolStatsDTO stats) {
+        initFonts();
         return generateReport("Reporte de Departamentos", "Nacional", stats, document -> {
             addDepartamentosTable(document, data);
         });
@@ -42,6 +109,7 @@ public class DivipolPdfGenerator {
      * Genera PDF para modo filtros con municipios.
      */
     public byte[] generateMunicipiosReport(List<DivipolMunicipioDTO> data, DivipolStatsDTO stats, String nomDepto) {
+        initFonts();
         String filterDesc = "Departamento: " + nomDepto;
         return generateReport("Reporte de Municipios", filterDesc, stats, document -> {
             addMunicipiosTable(document, data);
@@ -52,6 +120,7 @@ public class DivipolPdfGenerator {
      * Genera PDF para modo filtros con zonas.
      */
     public byte[] generateZonasReport(List<DivipolZonaDTO> data, DivipolStatsDTO stats, String nomDepto, String nomMpio) {
+        initFonts();
         String filterDesc = "Departamento: " + nomDepto + " | Municipio: " + nomMpio;
         return generateReport("Reporte de Zonas", filterDesc, stats, document -> {
             addZonasTable(document, data);
@@ -62,6 +131,7 @@ public class DivipolPdfGenerator {
      * Genera PDF para modo filtros con puestos.
      */
     public byte[] generatePuestosReport(List<DivipolPuestoDTO> data, DivipolStatsDTO stats, String nomDepto, String nomMpio, int codZona) {
+        initFonts();
         String filterDesc = "Departamento: " + nomDepto + " | Municipio: " + nomMpio + " | Zona: " + codZona;
         return generateReport("Reporte de Puestos", filterDesc, stats, document -> {
             addPuestosTable(document, data);
@@ -72,10 +142,11 @@ public class DivipolPdfGenerator {
      * Genera PDF para modo búsqueda.
      */
     public byte[] generateSearchReport(List<DivipolSearchResultDTO> results, String searchTerm, String searchMode, long totalElements) {
+        initFonts();
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4.rotate(), 36, 36, 54, 54);
             PdfWriter writer = PdfWriter.getInstance(document, baos);
-            writer.setPageEvent(new FooterPageEvent());
+            writer.setPageEvent(new FooterPageEvent(footerFont));
 
             document.open();
 
@@ -84,12 +155,12 @@ public class DivipolPdfGenerator {
 
             // Info de búsqueda
             Paragraph searchInfo = new Paragraph();
-            searchInfo.add(new Chunk("Término: ", STATS_LABEL_FONT));
-            searchInfo.add(new Chunk("\"" + searchTerm + "\"", STATS_VALUE_FONT));
-            searchInfo.add(new Chunk("  |  Modo: ", STATS_LABEL_FONT));
-            searchInfo.add(new Chunk("name".equals(searchMode) ? "Nombre" : "Código", STATS_VALUE_FONT));
-            searchInfo.add(new Chunk("  |  Total: ", STATS_LABEL_FONT));
-            searchInfo.add(new Chunk(String.format("%,d registros", totalElements), STATS_VALUE_FONT));
+            searchInfo.add(new Chunk("Término: ", statsLabelFont));
+            searchInfo.add(new Chunk("\"" + searchTerm + "\"", statsValueFont));
+            searchInfo.add(new Chunk("  |  Modo: ", statsLabelFont));
+            searchInfo.add(new Chunk("name".equals(searchMode) ? "Nombre" : "Código", statsValueFont));
+            searchInfo.add(new Chunk("  |  Total: ", statsLabelFont));
+            searchInfo.add(new Chunk(String.format("%,d registros", totalElements), statsValueFont));
             searchInfo.setSpacingAfter(15);
             document.add(searchInfo);
 
@@ -116,7 +187,7 @@ public class DivipolPdfGenerator {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4.rotate(), 36, 36, 54, 54);
             PdfWriter writer = PdfWriter.getInstance(document, baos);
-            writer.setPageEvent(new FooterPageEvent());
+            writer.setPageEvent(new FooterPageEvent(footerFont));
 
             document.open();
 
@@ -125,7 +196,7 @@ public class DivipolPdfGenerator {
 
             // Filtros aplicados
             if (filterDesc != null && !filterDesc.isEmpty()) {
-                Paragraph filters = new Paragraph("Filtros: " + filterDesc, SUBTITLE_FONT);
+                Paragraph filters = new Paragraph("Filtros: " + filterDesc, subtitleFont);
                 filters.setSpacingAfter(10);
                 document.add(filters);
             }
@@ -146,12 +217,12 @@ public class DivipolPdfGenerator {
     }
 
     private void addHeader(Document document, String title) throws DocumentException {
-        Paragraph titlePara = new Paragraph(title, TITLE_FONT);
+        Paragraph titlePara = new Paragraph(title, titleFont);
         titlePara.setAlignment(Element.ALIGN_CENTER);
         titlePara.setSpacingAfter(5);
         document.add(titlePara);
 
-        Paragraph subtitle = new Paragraph("División Política Electoral de Colombia - DIVIPOL", SUBTITLE_FONT);
+        Paragraph subtitle = new Paragraph("División Política Electoral de Colombia - DIVIPOL", subtitleFont);
         subtitle.setAlignment(Element.ALIGN_CENTER);
         subtitle.setSpacingAfter(20);
         document.add(subtitle);
@@ -184,8 +255,8 @@ public class DivipolPdfGenerator {
         cell.setBorderColor(Color.WHITE);
 
         Paragraph p = new Paragraph();
-        p.add(new Chunk(label + "\n", STATS_LABEL_FONT));
-        p.add(new Chunk(value, STATS_VALUE_FONT));
+        p.add(new Chunk(label + "\n", statsLabelFont));
+        p.add(new Chunk(value, statsValueFont));
         cell.addElement(p);
         table.addCell(cell);
     }
@@ -339,7 +410,7 @@ public class DivipolPdfGenerator {
     }
 
     private void addHeaderCell(PdfPTable table, String text) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, HEADER_FONT));
+        PdfPCell cell = new PdfPCell(new Phrase(text, headerFont));
         cell.setBackgroundColor(HEADER_BG);
         cell.setPadding(6);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -347,10 +418,10 @@ public class DivipolPdfGenerator {
     }
 
     private void addDataCell(PdfPTable table, String text, Color bgColor) {
-        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", CELL_FONT));
+        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "", cellFont));
         cell.setBackgroundColor(bgColor);
         cell.setPadding(5);
-        cell.setBorderColor(new Color(220, 220, 220));
+        cell.setBorderColor(BORDER_COLOR);
         table.addCell(cell);
     }
 
@@ -392,8 +463,15 @@ public class DivipolPdfGenerator {
 
     /**
      * Page event handler para agregar footer con fecha y número de página.
+     * Recibe la fuente como parámetro para evitar problemas con campos estáticos.
      */
     private static class FooterPageEvent extends PdfPageEventHelper {
+
+        private final Font footerFont;
+
+        FooterPageEvent(Font footerFont) {
+            this.footerFont = footerFont;
+        }
 
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
@@ -404,7 +482,7 @@ public class DivipolPdfGenerator {
             ColumnText.showTextAligned(
                 cb,
                 Element.ALIGN_CENTER,
-                new Phrase(footer, FOOTER_FONT),
+                new Phrase(footer, footerFont),
                 (document.right() - document.left()) / 2 + document.leftMargin(),
                 document.bottom() - 20,
                 0

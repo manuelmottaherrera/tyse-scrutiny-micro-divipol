@@ -14,6 +14,15 @@ public class JHipsterBlockHoundIntegration implements BlockHoundIntegration {
         builder.allowBlockingCallsInside("org.springdoc.core.service.OpenAPIService", "build");
         builder.allowBlockingCallsInside("org.springdoc.core.service.OpenAPIService", "getWebhooks");
         builder.allowBlockingCallsInside("org.springdoc.core.service.AbstractRequestService", "build");
+
+        // Permitir operaciones bloqueantes de OpenPDF en Schedulers.boundedElastic
+        builder.allowBlockingCallsInside("com.lowagie.text.pdf.PdfWriter", "getInstance");
+        builder.allowBlockingCallsInside("com.lowagie.text.pdf.PdfDocument", "close");
+        builder.allowBlockingCallsInside("com.lowagie.text.pdf.BaseFont", "createFont");
+        builder.allowBlockingCallsInside("com.tyse.scrutiny.micro.divipol.service.export.DivipolPdfGenerator", "generateReport");
+        builder.allowBlockingCallsInside("com.tyse.scrutiny.micro.divipol.service.export.DivipolPdfGenerator", "generateSearchReport");
+        builder.allowBlockingCallsInside("com.tyse.scrutiny.micro.divipol.service.export.DivipolPdfGenerator", "initFonts");
+        builder.allowBlockingCallsInside("com.tyse.scrutiny.micro.divipol.service.export.DivipolPdfGenerator", "loadEmbeddedFont");
         // jhipster-needle-blockhound-integration - JHipster will add additional gradle plugins here
     }
 }

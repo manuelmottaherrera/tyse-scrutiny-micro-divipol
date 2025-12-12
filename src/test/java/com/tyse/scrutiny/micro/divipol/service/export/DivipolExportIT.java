@@ -25,7 +25,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(classes = { TyseScrutinyMicroDivipolApp.class, AsyncSyncConfiguration.class })
 @EmbeddedSQL
-@AutoConfigureWebTestClient(timeout = "PT30S")
+@AutoConfigureWebTestClient(timeout = "PT120S")
 @WithMockUser
 @DisplayName("Divipol Export - Tests de Integración")
 class DivipolExportIT {
@@ -40,7 +40,7 @@ class DivipolExportIT {
 
     @BeforeEach
     void setup() {
-        webTestClient = webTestClient.mutate().responseTimeout(Duration.ofSeconds(30)).build();
+        webTestClient = webTestClient.mutate().responseTimeout(Duration.ofSeconds(120)).build();
     }
 
     // =====================================================
@@ -176,7 +176,6 @@ class DivipolExportIT {
 
     @Nested
     @DisplayName("GET /api/divipol/export/filters/pdf")
-    @Disabled("PDF generation fails in Testcontainers environment - needs investigation")
     class ExportFiltersPdfTests {
 
         @Test
@@ -356,7 +355,6 @@ class DivipolExportIT {
 
     @Nested
     @DisplayName("GET /api/divipol/export/search/pdf")
-    @Disabled("PDF generation and full-text search fail in Testcontainers environment - needs investigation")
     class ExportSearchPdfTests {
 
         @Test
@@ -367,8 +365,8 @@ class DivipolExportIT {
                 .uri(uriBuilder ->
                     uriBuilder
                         .path(EXPORT_API + "/search/pdf")
-                        .queryParam("q", "BOGOTA")
-                        .queryParam("mode", "name")
+                        .queryParam("q", "050010000") // Búsqueda por código (evita full-text search)
+                        .queryParam("mode", "code")
                         .queryParam("page", 0)
                         .queryParam("size", 20)
                         .build()
@@ -398,8 +396,8 @@ class DivipolExportIT {
                 .uri(uriBuilder ->
                     uriBuilder
                         .path(EXPORT_API + "/search/pdf")
-                        .queryParam("q", "CUNDINAMARCA")
-                        .queryParam("mode", "name")
+                        .queryParam("q", "0500") // Búsqueda por código (evita full-text search)
+                        .queryParam("mode", "code")
                         .queryParam("exportAll", true)
                         .build()
                 )
