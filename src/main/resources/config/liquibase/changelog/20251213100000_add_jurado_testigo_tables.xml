@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================ -->
+    <!-- Tabla: jurado                                -->
+    <!-- Jurados de votación asignados a puestos      -->
+    <!-- Solo lectura - datos de integración externa  -->
+    <!-- ============================================ -->
+    <changeSet id="20251213100001" author="Manuel A. Motta H.">
+        <createTable tableName="jurado">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tipo_documento" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="numero_documento" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nombres" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="apellidos" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="puesto_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="jurado"
+            columnNames="tipo_documento, numero_documento"
+            constraintName="uk_jurado_documento"/>
+
+        <addForeignKeyConstraint
+            baseTableName="jurado"
+            baseColumnNames="puesto_id"
+            referencedTableName="divipol"
+            referencedColumnNames="iddivipol"
+            constraintName="fk_jurado_puesto"/>
+
+        <createIndex tableName="jurado" indexName="idx_jurado_puesto">
+            <column name="puesto_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ============================================ -->
+    <!-- Tabla: testigo_electoral                     -->
+    <!-- Testigos electorales (personas externas)     -->
+    <!-- CRUD completo desde el aplicativo            -->
+    <!-- ============================================ -->
+    <changeSet id="20251213100002" author="Manuel A. Motta H.">
+        <createTable tableName="testigo_electoral">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tipo_documento" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="numero_documento" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nombres" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="apellidos" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="telefono" type="varchar(20)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="testigo_electoral"
+            columnNames="tipo_documento, numero_documento"
+            constraintName="uk_testigo_documento"/>
+
+        <createIndex tableName="testigo_electoral" indexName="idx_testigo_activo">
+            <column name="activo"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ============================================ -->
+    <!-- Tabla: testigo_puesto                        -->
+    <!-- Relación M:N entre testigos y puestos        -->
+    <!-- Un testigo puede estar en múltiples puestos  -->
+    <!-- ============================================ -->
+    <changeSet id="20251213100003" author="Manuel A. Motta H.">
+        <createTable tableName="testigo_puesto">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="testigo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="puesto_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="testigo_puesto"
+            columnNames="testigo_id, puesto_id"
+            constraintName="uk_testigo_puesto"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_puesto"
+            baseColumnNames="testigo_id"
+            referencedTableName="testigo_electoral"
+            referencedColumnNames="id"
+            constraintName="fk_testigo_puesto_testigo"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_puesto"
+            baseColumnNames="puesto_id"
+            referencedTableName="divipol"
+            referencedColumnNames="iddivipol"
+            constraintName="fk_testigo_puesto_puesto"/>
+
+        <createIndex tableName="testigo_puesto" indexName="idx_testigo_puesto_testigo">
+            <column name="testigo_id"/>
+        </createIndex>
+
+        <createIndex tableName="testigo_puesto" indexName="idx_testigo_puesto_puesto">
+            <column name="puesto_id"/>
+        </createIndex>
+
+        <createIndex tableName="testigo_puesto" indexName="idx_testigo_puesto_activo">
+            <column name="activo"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

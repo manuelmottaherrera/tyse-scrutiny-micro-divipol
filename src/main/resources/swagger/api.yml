@@ -416,6 +416,319 @@ paths:
                 type: string
                 format: binary
 
+  # =====================================================
+  # Endpoints de Detalle de Puesto
+  # =====================================================
+
+  /divipol/puestos/{puestoId}/detalle:
+    get:
+      tags:
+        - divipol-puesto
+      summary: Obtener detalle completo de un puesto
+      description: |
+        Retorna información detallada del puesto incluyendo dirección,
+        coordenadas geográficas, JAL, indicador, expandida y conteos
+        de jurados y testigos asignados.
+      operationId: getPuestoDetalle
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle del puesto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PuestoDetalleDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /divipol/puestos/{puestoId}/jurados:
+    get:
+      tags:
+        - divipol-puesto
+      summary: Obtener jurados de un puesto
+      description: Lista los jurados de votación asignados al puesto (solo lectura)
+      operationId: getJuradosByPuesto
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de jurados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JuradoDTO'
+
+  /divipol/puestos/{puestoId}/testigos:
+    get:
+      tags:
+        - divipol-puesto
+      summary: Obtener testigos de un puesto
+      description: Lista los testigos electorales asignados al puesto
+      operationId: getTestigosByPuesto
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de testigos asignados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestigoAsignadoDTO'
+
+  /divipol/puestos/{puestoId}/testigos/{testigoId}:
+    post:
+      tags:
+        - divipol-puesto
+      summary: Asignar testigo a puesto
+      description: Asigna un testigo electoral a un puesto de votación
+      operationId: asignarTestigoAPuesto
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+        - name: testigoId
+          in: path
+          required: true
+          description: ID del testigo
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '201':
+          description: Testigo asignado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoAsignadoDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: El testigo ya está asignado a este puesto
+          content:
+            application/problem+json:
+              schema:
+                type: object
+    delete:
+      tags:
+        - divipol-puesto
+      summary: Desasignar testigo de puesto
+      description: Elimina la asignación de un testigo electoral de un puesto
+      operationId: desasignarTestigoDePuesto
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+        - name: testigoId
+          in: path
+          required: true
+          description: ID del testigo
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Testigo desasignado exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  # =====================================================
+  # Endpoints de Testigos Electorales
+  # =====================================================
+
+  /testigos:
+    get:
+      tags:
+        - testigos
+      summary: Listar todos los testigos
+      description: Obtiene una lista paginada de testigos electorales activos
+      operationId: getAllTestigos
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de testigos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoPage'
+    post:
+      tags:
+        - testigos
+      summary: Crear testigo
+      description: Registra un nuevo testigo electoral
+      operationId: createTestigo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestigoCreateDTO'
+      responses:
+        '201':
+          description: Testigo creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: Ya existe un testigo con ese documento
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  /testigos/{id}:
+    get:
+      tags:
+        - testigos
+      summary: Obtener testigo por ID
+      operationId: getTestigoById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Testigo encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      tags:
+        - testigos
+      summary: Actualizar testigo
+      operationId: updateTestigo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestigoUpdateDTO'
+      responses:
+        '200':
+          description: Testigo actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - testigos
+      summary: Eliminar testigo
+      description: Desactiva un testigo electoral (soft delete)
+      operationId: deleteTestigo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Testigo eliminado exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /testigos/search:
+    get:
+      tags:
+        - testigos
+      summary: Buscar testigos
+      description: Busca testigos por nombre, apellido o número de documento
+      operationId: searchTestigos
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda (mínimo 2 caracteres)
+          schema:
+            type: string
+            minLength: 2
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoPage'
+
   /divipol/export/search/pdf:
     get:
       tags:
@@ -592,6 +905,9 @@ components:
     DivipolPuestoDTO:
       type: object
       properties:
+        iddivipol:
+          type: integer
+          description: ID único del puesto
         coddepto:
           type: integer
         codmipio:
@@ -701,6 +1017,220 @@ components:
         totalPages:
           type: integer
           description: Total de páginas disponibles
+
+    # =====================================================
+    # Schemas de Detalle de Puesto
+    # =====================================================
+
+    PuestoDetalleDTO:
+      type: object
+      description: Detalle completo de un puesto de votación
+      properties:
+        iddivipol:
+          type: integer
+          description: ID único del puesto
+        coddepto:
+          type: integer
+        codmipio:
+          type: integer
+        codzona:
+          type: integer
+        codpuesto:
+          type: string
+        nomdepto:
+          type: string
+        nommipio:
+          type: string
+        nompuesto:
+          type: string
+        direccion:
+          type: string
+          description: Dirección física del puesto de votación
+        latitud:
+          type: number
+          format: double
+          description: Latitud geográfica
+        longitud:
+          type: number
+          format: double
+          description: Longitud geográfica
+        jal:
+          type: integer
+          description: Código de la Junta Administrativa Local
+        nomjal:
+          type: string
+          description: Nombre de la JAL
+        indicador:
+          type: integer
+          description: Indicador electoral
+        expandida:
+          type: integer
+          description: Bandera de zona expandida
+        nummesas:
+          type: integer
+          description: Número de mesas de votación
+        potfemenino:
+          type: integer
+          format: int64
+          description: Potencial electoral femenino
+        potmasculino:
+          type: integer
+          format: int64
+          description: Potencial electoral masculino
+        pottotal:
+          type: integer
+          format: int64
+          description: Potencial electoral total
+        totalJurados:
+          type: integer
+          description: Cantidad de jurados asignados
+        totalTestigos:
+          type: integer
+          description: Cantidad de testigos asignados
+
+    # =====================================================
+    # Schemas de Jurados
+    # =====================================================
+
+    JuradoDTO:
+      type: object
+      description: Jurado de votación
+      properties:
+        id:
+          type: integer
+          format: int64
+        tipoDocumento:
+          type: string
+          description: Tipo de documento (CC, CE, TI, etc.)
+        numeroDocumento:
+          type: string
+          description: Número de documento
+        nombres:
+          type: string
+        apellidos:
+          type: string
+
+    # =====================================================
+    # Schemas de Testigos Electorales
+    # =====================================================
+
+    TestigoDTO:
+      type: object
+      description: Testigo electoral
+      properties:
+        id:
+          type: integer
+          format: int64
+        tipoDocumento:
+          type: string
+          description: Tipo de documento (CC, CE, etc.)
+        numeroDocumento:
+          type: string
+          description: Número de documento
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        telefono:
+          type: string
+        email:
+          type: string
+        activo:
+          type: boolean
+        puestosAsignados:
+          type: integer
+          description: Cantidad de puestos a los que está asignado
+
+    TestigoCreateDTO:
+      type: object
+      description: Datos para crear un testigo electoral
+      required:
+        - tipoDocumento
+        - numeroDocumento
+        - nombres
+        - apellidos
+      properties:
+        tipoDocumento:
+          type: string
+          maxLength: 10
+        numeroDocumento:
+          type: string
+          maxLength: 20
+        nombres:
+          type: string
+          maxLength: 100
+        apellidos:
+          type: string
+          maxLength: 100
+        telefono:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          maxLength: 100
+
+    TestigoUpdateDTO:
+      type: object
+      description: Datos para actualizar un testigo electoral
+      properties:
+        nombres:
+          type: string
+          maxLength: 100
+        apellidos:
+          type: string
+          maxLength: 100
+        telefono:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          maxLength: 100
+
+    TestigoAsignadoDTO:
+      type: object
+      description: Testigo asignado a un puesto
+      properties:
+        testigoId:
+          type: integer
+          format: int64
+        tipoDocumento:
+          type: string
+        numeroDocumento:
+          type: string
+        nombreCompleto:
+          type: string
+          description: Nombres y apellidos concatenados
+        telefono:
+          type: string
+        assignedDate:
+          type: string
+          format: date-time
+          description: Fecha de asignación
+        assignedBy:
+          type: string
+          description: Usuario que realizó la asignación
+
+    TestigoPage:
+      type: object
+      description: Página de testigos
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestigoDTO'
+        page:
+          type: integer
+          description: Número de página actual (0-indexed)
+        size:
+          type: integer
+          description: Tamaño de página
+        totalElements:
+          type: integer
+          format: int64
+          description: Total de elementos
+        totalPages:
+          type: integer
+          description: Total de páginas
 
   securitySchemes:
     jwt:

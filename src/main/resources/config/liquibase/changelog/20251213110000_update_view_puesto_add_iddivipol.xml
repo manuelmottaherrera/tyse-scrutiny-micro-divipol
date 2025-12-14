@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Update view_divipol_puesto to include iddivipol field.
+        Required for the puesto detail modal functionality.
+    -->
+    <changeSet id="20251213110000-1" author="jhipster">
+        <createView viewName="view_divipol_puesto" replaceIfExists="true">
+            SELECT MAX(iddivipol) AS iddivipol,
+                coddepto,
+                codmipio,
+                codzona,
+                codpuesto,
+                nomdepto,
+                nommipio,
+                nompuesto,
+                sum(potfemenino) AS potencial_femenino,
+                sum(potmasculino) AS potencial_masculino,
+                sum(pottotal) AS potencial_total,
+                sum(nummesas) AS mesas
+            FROM divipol
+            WHERE clase = 'P'
+            GROUP BY coddepto, codmipio, codzona, codpuesto, nomdepto, nommipio, nompuesto
+            ORDER BY coddepto, codmipio, codzona, codpuesto
+        </createView>
+    </changeSet>
+
+</databaseChangeLog>

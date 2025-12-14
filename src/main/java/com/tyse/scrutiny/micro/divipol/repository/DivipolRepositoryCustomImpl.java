@@ -92,7 +92,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
     @Override
     public Flux<DivipolPuestoDTO> findPuestosByZona(Integer codDepto, Integer codMpio, Integer codZona) {
         String sql =
-            "SELECT coddepto, codmipio, codzona, codpuesto, nomdepto, nommipio, nompuesto, " +
+            "SELECT iddivipol, coddepto, codmipio, codzona, codpuesto, nomdepto, nommipio, nompuesto, " +
             "potencial_femenino, potencial_masculino, potencial_total, mesas " +
             "FROM view_divipol_puesto " +
             "WHERE coddepto = :coddepto AND codmipio = :codmipio AND codzona = :codzona";
@@ -104,6 +104,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
             .bind("codzona", codZona)
             .map(row ->
                 new DivipolPuestoDTO()
+                    .iddivipol(row.get("iddivipol", Integer.class))
                     .coddepto(row.get("coddepto", Integer.class))
                     .codmipio(row.get("codmipio", Integer.class))
                     .codzona(row.get("codzona", Integer.class))
