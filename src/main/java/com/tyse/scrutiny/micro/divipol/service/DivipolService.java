@@ -8,6 +8,7 @@ import com.tyse.scrutiny.micro.divipol.web.api.DivipolApiDelegate;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -30,10 +31,16 @@ public class DivipolService implements DivipolApiDelegate {
 
     private final DivipolRepository divipolRepository;
     private final DivipolExportService exportService;
+    private final DivipolPuestoService puestoService;
 
-    public DivipolService(DivipolRepository divipolRepository, DivipolExportService exportService) {
+    public DivipolService(
+        DivipolRepository divipolRepository,
+        DivipolExportService exportService,
+        @Lazy DivipolPuestoService puestoService
+    ) {
         this.divipolRepository = divipolRepository;
         this.exportService = exportService;
+        this.puestoService = puestoService;
     }
 
     @Override
@@ -323,5 +330,34 @@ public class DivipolService implements DivipolApiDelegate {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
             .contentLength(bytes.length)
             .body(resource);
+    }
+
+    // =====================================================
+    // Métodos de Detalle de Puesto (delegados a DivipolPuestoService)
+    // =====================================================
+
+    @Override
+    public Mono<ResponseEntity<PuestoDetalleDTO>> getPuestoDetalle(Integer puestoId, ServerWebExchange exchange) {
+        return puestoService.getPuestoDetalle(puestoId, exchange);
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<JuradoDTO>>> getJuradosByPuesto(Integer puestoId, ServerWebExchange exchange) {
+        return puestoService.getJuradosByPuesto(puestoId, exchange);
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<TestigoAsignadoDTO>>> getTestigosByPuesto(Integer puestoId, ServerWebExchange exchange) {
+        return puestoService.getTestigosByPuesto(puestoId, exchange);
+    }
+
+    @Override
+    public Mono<ResponseEntity<TestigoAsignadoDTO>> asignarTestigoAPuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
+        return puestoService.asignarTestigoAPuesto(puestoId, testigoId, exchange);
+    }
+
+    @Override
+    public Mono<ResponseEntity<Void>> desasignarTestigoDePuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
+        return puestoService.desasignarTestigoDePuesto(puestoId, testigoId, exchange);
     }
 }

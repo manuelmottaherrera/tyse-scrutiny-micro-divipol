@@ -9,7 +9,6 @@ import com.tyse.scrutiny.micro.divipol.repository.TestigoPuestoRepository;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.JuradoDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.PuestoDetalleDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.TestigoAsignadoDTO;
-import com.tyse.scrutiny.micro.divipol.web.api.DivipolPuestoApiDelegate;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -28,7 +27,7 @@ import reactor.core.publisher.Mono;
  * Servicio que implementa los endpoints de detalle de puesto, jurados y testigos.
  */
 @Service
-public class DivipolPuestoService implements DivipolPuestoApiDelegate {
+public class DivipolPuestoService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DivipolPuestoService.class);
 
@@ -49,7 +48,6 @@ public class DivipolPuestoService implements DivipolPuestoApiDelegate {
         this.testigoPuestoRepository = testigoPuestoRepository;
     }
 
-    @Override
     public Mono<ResponseEntity<PuestoDetalleDTO>> getPuestoDetalle(Integer puestoId, ServerWebExchange exchange) {
         LOG.debug("REST request to get Puesto detail: {}", puestoId);
 
@@ -120,7 +118,6 @@ public class DivipolPuestoService implements DivipolPuestoApiDelegate {
             .map(ResponseEntity::ok);
     }
 
-    @Override
     public Mono<ResponseEntity<Flux<JuradoDTO>>> getJuradosByPuesto(Integer puestoId, ServerWebExchange exchange) {
         LOG.debug("REST request to get Jurados by puesto: {}", puestoId);
 
@@ -129,7 +126,6 @@ public class DivipolPuestoService implements DivipolPuestoApiDelegate {
         return Mono.just(ResponseEntity.ok(jurados));
     }
 
-    @Override
     public Mono<ResponseEntity<Flux<TestigoAsignadoDTO>>> getTestigosByPuesto(Integer puestoId, ServerWebExchange exchange) {
         LOG.debug("REST request to get Testigos by puesto: {}", puestoId);
 
@@ -140,7 +136,6 @@ public class DivipolPuestoService implements DivipolPuestoApiDelegate {
         return Mono.just(ResponseEntity.ok(testigos));
     }
 
-    @Override
     public Mono<ResponseEntity<TestigoAsignadoDTO>> asignarTestigoAPuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
         LOG.debug("REST request to assign Testigo {} to Puesto {}", testigoId, puestoId);
 
@@ -176,7 +171,6 @@ public class DivipolPuestoService implements DivipolPuestoApiDelegate {
             .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
     }
 
-    @Override
     public Mono<ResponseEntity<Void>> desasignarTestigoDePuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
         LOG.debug("REST request to unassign Testigo {} from Puesto {}", testigoId, puestoId);
 

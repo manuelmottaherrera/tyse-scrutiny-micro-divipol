@@ -7,9 +7,14 @@
     <!--
         Update view_divipol_puesto to include iddivipol field.
         Required for the puesto detail modal functionality.
+        Note: Must DROP and CREATE because PostgreSQL doesn't allow changing column names with REPLACE.
     -->
     <changeSet id="20251213110000-1" author="jhipster">
-        <createView viewName="view_divipol_puesto" replaceIfExists="true">
+        <sql>DROP VIEW IF EXISTS view_divipol_puesto</sql>
+    </changeSet>
+
+    <changeSet id="20251213110000-2" author="jhipster">
+        <createView viewName="view_divipol_puesto">
             SELECT MAX(iddivipol) AS iddivipol,
                 coddepto,
                 codmipio,
