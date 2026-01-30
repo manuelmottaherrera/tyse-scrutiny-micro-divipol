@@ -26,6 +26,7 @@
 ################################################################################
 
 set -e  # Exit on error
+set -o pipefail  # Ensure pipe commands return the exit code of the failing command
 
 # Colors for output
 RED='\033[0;31m'
