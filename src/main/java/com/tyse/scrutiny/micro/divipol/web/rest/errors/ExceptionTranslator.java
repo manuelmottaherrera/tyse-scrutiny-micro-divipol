@@ -217,6 +217,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler implemen
         if (err instanceof ConcurrencyFailureException) return HttpStatus.CONFLICT;
         if (err instanceof BadCredentialsException) return HttpStatus.UNAUTHORIZED;
         if (err instanceof UsernameNotFoundException) return HttpStatus.UNAUTHORIZED;
+        if (err instanceof jakarta.validation.ConstraintViolationException) return HttpStatus.BAD_REQUEST;
         return null;
     }
 

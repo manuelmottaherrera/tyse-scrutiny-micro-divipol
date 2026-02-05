@@ -63,8 +63,8 @@ public class DivipolPuestoService {
                 d.nommipio,
                 d.nompuesto,
                 d.direccion,
-                ST_Y(d.cordenadas) as latitud,
-                ST_X(d.cordenadas) as longitud,
+                d.cordenadas[1] as latitud,
+                d.cordenadas[0] as longitud,
                 d.jal,
                 d.nomjal,
                 d.indicador,
@@ -139,9 +139,6 @@ public class DivipolPuestoService {
     public Mono<ResponseEntity<TestigoAsignadoDTO>> asignarTestigoAPuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
         LOG.debug("REST request to assign Testigo {} to Puesto {}", testigoId, puestoId);
 
-        // Obtener usuario del JWT (si está disponible)
-        String currentUser = extractCurrentUser(exchange);
-
         // Verificar que el testigo existe
         return testigoRepository
             .findById(testigoId)
@@ -152,20 +149,22 @@ public class DivipolPuestoService {
                     .existsByTestigoIdAndPuestoIdAndActivoTrue(testigoId, puestoId)
                     .flatMap(exists -> {
                         if (exists) {
-                            return Mono.error(
+                            return Mono.<TestigoAsignadoDTO>error(
                                 new ResponseStatusException(HttpStatus.CONFLICT, "El testigo ya está asignado a este puesto")
                             );
                         }
 
-                        // Crear la asignación
-                        TestigoPuesto tp = new TestigoPuesto();
-                        tp.setTestigoId(testigoId);
-                        tp.setPuestoId(puestoId);
-                        tp.setAssignedDate(Instant.now());
-                        tp.setAssignedBy(currentUser);
-                        tp.setActivo(true);
+                        // Obtener usuario del JWT de forma reactiva y crear la asignación
+                        return extractCurrentUser(exchange).flatMap(currentUser -> {
+                            TestigoPuesto tp = new TestigoPuesto();
+                            tp.setTestigoId(testigoId);
+                            tp.setPuestoId(puestoId);
+                            tp.setAssignedDate(Instant.now());
+                            tp.setAssignedBy(currentUser);
+                            tp.setActivo(true);
 
-                        return testigoPuestoRepository.save(tp).map(saved -> toTestigoAsignadoDTO(testigo, saved));
+                            return testigoPuestoRepository.save(tp).map(saved -> toTestigoAsignadoDTO(testigo, saved));
+                        });
                     })
             )
             .map(dto -> ResponseEntity.status(HttpStatus.CREATED).body(dto));
@@ -209,8 +208,7 @@ public class DivipolPuestoService {
         return dto;
     }
 
-    private String extractCurrentUser(ServerWebExchange exchange) {
-        // Intentar obtener el usuario del contexto de seguridad
-        return exchange.getPrincipal().map(principal -> principal.getName()).defaultIfEmpty("system").block(); // En contexto reactivo esto debería manejarse mejor
+    private Mono<String> extractCurrentUser(ServerWebExchange exchange) {
+        return exchange.getPrincipal().map(principal -> principal.getName()).defaultIfEmpty("system");
     }
 }
