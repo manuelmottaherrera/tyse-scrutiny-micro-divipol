@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================ -->
+    <!-- Tabla: organizacion_politica                 -->
+    <!-- Catálogo de organizaciones políticas         -->
+    <!-- (partidos, movimientos, coaliciones, etc.)   -->
+    <!-- ============================================ -->
+    <changeSet id="20260205200001" author="Manuel A. Motta H.">
+        <createTable tableName="organizacion_politica">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nombre" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sigla" type="varchar(20)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tipo" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="organizacion_politica"
+            columnNames="nombre"
+            constraintName="uk_organizacion_nombre"/>
+
+        <createIndex tableName="organizacion_politica" indexName="idx_organizacion_tipo">
+            <column name="tipo"/>
+        </createIndex>
+
+        <createIndex tableName="organizacion_politica" indexName="idx_organizacion_activo">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="organizacion_politica" indexName="idx_organizacion_activo"/>
+            <dropIndex tableName="organizacion_politica" indexName="idx_organizacion_tipo"/>
+            <dropUniqueConstraint tableName="organizacion_politica" constraintName="uk_organizacion_nombre"/>
+            <dropTable tableName="organizacion_politica"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

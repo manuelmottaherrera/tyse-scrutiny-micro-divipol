@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================ -->
+    <!-- Tabla: comision_escrutadora                  -->
+    <!-- Comisiones escrutadoras de diferentes        -->
+    <!-- niveles (auxiliar, municipal, distrital,     -->
+    <!-- general)                                     -->
+    <!-- ============================================ -->
+    <changeSet id="20260205300001" author="Manuel A. Motta H.">
+        <createTable tableName="comision_escrutadora">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tipo" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nombre" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ubicacion" type="varchar(300)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="departamento_id" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="municipio_id" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="fecha_inicio" type="date">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="comision_escrutadora"
+            columnNames="nombre, tipo"
+            constraintName="uk_comision_nombre_tipo"/>
+
+        <createIndex tableName="comision_escrutadora" indexName="idx_comision_tipo">
+            <column name="tipo"/>
+        </createIndex>
+
+        <createIndex tableName="comision_escrutadora" indexName="idx_comision_activo">
+            <column name="activo"/>
+        </createIndex>
+
+        <createIndex tableName="comision_escrutadora" indexName="idx_comision_depto">
+            <column name="departamento_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="comision_escrutadora" indexName="idx_comision_depto"/>
+            <dropIndex tableName="comision_escrutadora" indexName="idx_comision_activo"/>
+            <dropIndex tableName="comision_escrutadora" indexName="idx_comision_tipo"/>
+            <dropUniqueConstraint tableName="comision_escrutadora" constraintName="uk_comision_nombre_tipo"/>
+            <dropTable tableName="comision_escrutadora"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

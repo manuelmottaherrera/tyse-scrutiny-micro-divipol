@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Tabla de Reclamaciones Electorales.
+
+        WP7: Reclamaciones
+
+        Tipos de reclamación (Art. 165-168 Código Electoral):
+        - IRREGULARIDAD_MESA: Irregularidades en el proceso de votación
+        - EXCESO_VOTANTES: Votos superiores al potencial electoral
+        - ERROR_ARITMETICO: Errores en sumas o cómputos
+        - ERROR_NOMBRES: Discrepancias en nombres de candidatos
+        - FIRMAS_INSUFICIENTES: Falta de firmas requeridas en actas
+        - DISCREPANCIA_ACTAS: Diferencias entre actas E14/E24/E26
+        - OTRO: Otras causales de reclamación
+
+        Estados:
+        - PRESENTADA: Reclamación registrada
+        - EN_REVISION: En proceso de análisis
+        - ACEPTADA: Reclamación aceptada y aplicada
+        - RECHAZADA: Reclamación desestimada
+    -->
+    <changeSet id="20260205700001" author="Manuel A. Motta H.">
+        <createTable tableName="reclamacion">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="testigo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tipo_reclamacion" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="descripcion" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="estado" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mesa_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="comision_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="fecha_presentacion" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resolucion" type="text">
+                <constraints nullable="true"/>
+            </column>
+            <column name="fecha_resolucion" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="resuelta_por" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <!-- Audit fields -->
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+            baseTableName="reclamacion"
+            baseColumnNames="testigo_id"
+            constraintName="fk_reclamacion_testigo"
+            referencedTableName="testigo_electoral"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="reclamacion"
+            baseColumnNames="mesa_id"
+            constraintName="fk_reclamacion_mesa"
+            referencedTableName="mesa_votacion"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+            baseTableName="reclamacion"
+            baseColumnNames="comision_id"
+            constraintName="fk_reclamacion_comision"
+            referencedTableName="comision_escrutadora"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_reclamacion_testigo" tableName="reclamacion">
+            <column name="testigo_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_tipo" tableName="reclamacion">
+            <column name="tipo_reclamacion"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_estado" tableName="reclamacion">
+            <column name="estado"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_mesa" tableName="reclamacion">
+            <column name="mesa_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_comision" tableName="reclamacion">
+            <column name="comision_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_fecha" tableName="reclamacion">
+            <column name="fecha_presentacion"/>
+        </createIndex>
+
+        <createIndex indexName="idx_reclamacion_activo" tableName="reclamacion">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_reclamacion_activo" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_fecha" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_comision" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_mesa" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_estado" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_tipo" tableName="reclamacion"/>
+            <dropIndex indexName="idx_reclamacion_testigo" tableName="reclamacion"/>
+            <dropForeignKeyConstraint baseTableName="reclamacion" constraintName="fk_reclamacion_comision"/>
+            <dropForeignKeyConstraint baseTableName="reclamacion" constraintName="fk_reclamacion_mesa"/>
+            <dropForeignKeyConstraint baseTableName="reclamacion" constraintName="fk_reclamacion_testigo"/>
+            <dropTable tableName="reclamacion"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

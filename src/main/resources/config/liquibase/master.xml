@@ -22,6 +22,15 @@
     <include file="config/liquibase/changelog/20251205100000_add_fulltext_search_divipol.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251213100000_add_jurado_testigo_tables.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251213110000_update_view_puesto_add_iddivipol.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205100000_add_mesa_votacion.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205200000_add_organizacion_politica.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205300000_add_comision_escrutadora.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205400000_add_configuracion_electoral.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205500000_extend_testigo_electoral.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205510000_add_testigo_mesa.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205520000_add_testigo_comision.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205600000_add_credencial.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205700000_add_reclamacion.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

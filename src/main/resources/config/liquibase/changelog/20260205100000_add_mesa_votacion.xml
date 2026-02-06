@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================ -->
+    <!-- Tabla: mesa_votacion                         -->
+    <!-- Mesas de votación dentro de cada puesto      -->
+    <!-- Auto-generada desde divipol.nummesas         -->
+    <!-- ============================================ -->
+    <changeSet id="20260205100001" author="Manuel A. Motta H.">
+        <createTable tableName="mesa_votacion">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="puesto_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="numero_mesa" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="mesa_votacion"
+            columnNames="puesto_id, numero_mesa"
+            constraintName="uk_mesa_puesto_numero"/>
+
+        <addForeignKeyConstraint
+            baseTableName="mesa_votacion"
+            baseColumnNames="puesto_id"
+            referencedTableName="divipol"
+            referencedColumnNames="iddivipol"
+            constraintName="fk_mesa_puesto"/>
+
+        <createIndex tableName="mesa_votacion" indexName="idx_mesa_puesto">
+            <column name="puesto_id"/>
+        </createIndex>
+
+        <createIndex tableName="mesa_votacion" indexName="idx_mesa_activo">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="mesa_votacion" indexName="idx_mesa_activo"/>
+            <dropIndex tableName="mesa_votacion" indexName="idx_mesa_puesto"/>
+            <dropForeignKeyConstraint baseTableName="mesa_votacion" constraintName="fk_mesa_puesto"/>
+            <dropUniqueConstraint tableName="mesa_votacion" constraintName="uk_mesa_puesto_numero"/>
+            <dropTable tableName="mesa_votacion"/>
+        </rollback>
+    </changeSet>
+
+    <!-- ============================================ -->
+    <!-- Auto-generación de mesas desde divipol       -->
+    <!-- Crea N mesas por cada puesto (nummesas)      -->
+    <!-- ============================================ -->
+    <changeSet id="20260205100002" author="Manuel A. Motta H.">
+        <comment>Genera registros de mesa_votacion desde divipol.nummesas para puestos clase P</comment>
+        <sql>
+            INSERT INTO mesa_votacion (puesto_id, numero_mesa, activo, created_date, last_modified_date, created_by)
+            SELECT d.iddivipol, gs.n, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'system'
+            FROM divipol d
+            CROSS JOIN LATERAL generate_series(1, d.nummesas) AS gs(n)
+            WHERE d.clase = 'P' AND d.nummesas > 0
+        </sql>
+        <rollback>
+            <sql>DELETE FROM mesa_votacion WHERE created_by = 'system';</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

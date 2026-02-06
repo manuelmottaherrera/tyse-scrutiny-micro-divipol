@@ -49,6 +49,9 @@ public class TestigoElectoral implements Serializable {
     @Column("email")
     private String email;
 
+    @Column("organizacion_id")
+    private Long organizacionId;
+
     @NotNull
     @Column("activo")
     private Boolean activo = true;
@@ -160,6 +163,19 @@ public class TestigoElectoral implements Serializable {
         return this;
     }
 
+    public Long getOrganizacionId() {
+        return organizacionId;
+    }
+
+    public void setOrganizacionId(Long organizacionId) {
+        this.organizacionId = organizacionId;
+    }
+
+    public TestigoElectoral organizacionId(Long organizacionId) {
+        this.organizacionId = organizacionId;
+        return this;
+    }
+
     public Boolean getActivo() {
         return activo;
     }
@@ -265,6 +281,8 @@ public class TestigoElectoral implements Serializable {
             ", email='" +
             email +
             "'" +
+            ", organizacionId=" +
+            organizacionId +
             ", activo=" +
             activo +
             "}"

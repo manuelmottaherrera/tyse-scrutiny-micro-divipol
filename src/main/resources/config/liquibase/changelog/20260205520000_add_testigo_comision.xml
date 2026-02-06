@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Tabla testigo_comision: Asignación de testigos a comisiones escrutadoras.
+
+        Regla normativa: máximo 1 testigo por organización por comisión
+        (implementado con partial unique index)
+    -->
+    <changeSet id="20260205520000-1" author="system">
+        <createTable tableName="testigo_comision">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="testigo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comision_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organizacion_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tipo_testigo" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_date" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="assigned_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign keys -->
+        <addForeignKeyConstraint
+            baseTableName="testigo_comision"
+            baseColumnNames="testigo_id"
+            constraintName="fk_testigo_comision_testigo"
+            referencedTableName="testigo_electoral"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_comision"
+            baseColumnNames="comision_id"
+            constraintName="fk_testigo_comision_comision"
+            referencedTableName="comision_escrutadora"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_comision"
+            baseColumnNames="organizacion_id"
+            constraintName="fk_testigo_comision_org"
+            referencedTableName="organizacion_politica"
+            referencedColumnNames="id"/>
+
+        <!-- Unique constraint: un testigo no puede asignarse 2 veces a la misma comisión -->
+        <addUniqueConstraint
+            tableName="testigo_comision"
+            columnNames="testigo_id, comision_id"
+            constraintName="uk_testigo_comision"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_testigo_comision_comision" tableName="testigo_comision">
+            <column name="comision_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_comision_org" tableName="testigo_comision">
+            <column name="organizacion_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_comision_tipo" tableName="testigo_comision">
+            <column name="tipo_testigo"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_comision_activo" tableName="testigo_comision">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_testigo_comision_activo" tableName="testigo_comision"/>
+            <dropIndex indexName="idx_testigo_comision_tipo" tableName="testigo_comision"/>
+            <dropIndex indexName="idx_testigo_comision_org" tableName="testigo_comision"/>
+            <dropIndex indexName="idx_testigo_comision_comision" tableName="testigo_comision"/>
+            <dropUniqueConstraint tableName="testigo_comision" constraintName="uk_testigo_comision"/>
+            <dropForeignKeyConstraint baseTableName="testigo_comision" constraintName="fk_testigo_comision_org"/>
+            <dropForeignKeyConstraint baseTableName="testigo_comision" constraintName="fk_testigo_comision_comision"/>
+            <dropForeignKeyConstraint baseTableName="testigo_comision" constraintName="fk_testigo_comision_testigo"/>
+            <dropTable tableName="testigo_comision"/>
+        </rollback>
+    </changeSet>
+
+    <!--
+        Partial unique index para regla normativa:
+        Solo 1 testigo por organización por comisión (cuando activo=true)
+    -->
+    <changeSet id="20260205520000-2" author="system">
+        <sql>
+            CREATE UNIQUE INDEX uk_org_comision
+            ON testigo_comision (comision_id, organizacion_id)
+            WHERE activo = true;
+        </sql>
+
+        <rollback>
+            <sql>DROP INDEX IF EXISTS uk_org_comision;</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

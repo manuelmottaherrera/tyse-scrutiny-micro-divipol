@@ -32,15 +32,18 @@ public class DivipolService implements DivipolApiDelegate {
     private final DivipolRepository divipolRepository;
     private final DivipolExportService exportService;
     private final DivipolPuestoService puestoService;
+    private final TestigoAsignacionService testigoAsignacionService;
 
     public DivipolService(
         DivipolRepository divipolRepository,
         DivipolExportService exportService,
-        @Lazy DivipolPuestoService puestoService
+        @Lazy DivipolPuestoService puestoService,
+        @Lazy TestigoAsignacionService testigoAsignacionService
     ) {
         this.divipolRepository = divipolRepository;
         this.exportService = exportService;
         this.puestoService = puestoService;
+        this.testigoAsignacionService = testigoAsignacionService;
     }
 
     @Override
@@ -359,5 +362,42 @@ public class DivipolService implements DivipolApiDelegate {
     @Override
     public Mono<ResponseEntity<Void>> desasignarTestigoDePuesto(Integer puestoId, Long testigoId, ServerWebExchange exchange) {
         return puestoService.desasignarTestigoDePuesto(puestoId, testigoId, exchange);
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<MesaVotacionDTO>>> getMesasByPuesto(Integer puestoId, ServerWebExchange exchange) {
+        return puestoService.getMesasByPuesto(puestoId, exchange);
+    }
+
+    // =====================================================
+    // Métodos de Testigos en Mesas (delegados a TestigoAsignacionService)
+    // =====================================================
+
+    @Override
+    public Mono<ResponseEntity<Flux<TestigoMesaDTO>>> getTestigosByMesa(Integer puestoId, Long mesaId, ServerWebExchange exchange) {
+        LOG.debug("REST request to get Testigos by mesa: puesto={}, mesa={}", puestoId, mesaId);
+        Flux<TestigoMesaDTO> testigos = testigoAsignacionService.getTestigosByMesa(mesaId);
+        return Mono.just(ResponseEntity.ok(testigos));
+    }
+
+    @Override
+    public Mono<ResponseEntity<TestigoMesaDTO>> asignarTestigoAMesa(
+        Integer puestoId,
+        Long mesaId,
+        Mono<TestigoMesaAsignacionDTO> dto,
+        ServerWebExchange exchange
+    ) {
+        LOG.debug("REST request to assign Testigo to mesa: puesto={}, mesa={}", puestoId, mesaId);
+        return dto
+            .flatMap(d -> testigoAsignacionService.asignarTestigoAMesa(puestoId, mesaId, d, exchange))
+            .map(result -> ResponseEntity.status(HttpStatus.CREATED).body(result));
+    }
+
+    @Override
+    public Mono<ResponseEntity<Void>> desasignarTestigoDeMesa(Integer puestoId, Long mesaId, Long testigoId, ServerWebExchange exchange) {
+        LOG.debug("REST request to unassign Testigo from mesa: puesto={}, mesa={}, testigo={}", puestoId, mesaId, testigoId);
+        return testigoAsignacionService
+            .desasignarTestigoDeMesa(mesaId, testigoId)
+            .then(Mono.just(ResponseEntity.noContent().<Void>build()));
     }
 }

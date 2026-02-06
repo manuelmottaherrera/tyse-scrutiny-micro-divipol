@@ -1,12 +1,15 @@
 package com.tyse.scrutiny.micro.divipol.service;
 
 import com.tyse.scrutiny.micro.divipol.domain.Jurado;
+import com.tyse.scrutiny.micro.divipol.domain.MesaVotacion;
 import com.tyse.scrutiny.micro.divipol.domain.TestigoElectoral;
 import com.tyse.scrutiny.micro.divipol.domain.TestigoPuesto;
 import com.tyse.scrutiny.micro.divipol.repository.JuradoRepository;
+import com.tyse.scrutiny.micro.divipol.repository.MesaVotacionRepository;
 import com.tyse.scrutiny.micro.divipol.repository.TestigoElectoralRepository;
 import com.tyse.scrutiny.micro.divipol.repository.TestigoPuestoRepository;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.JuradoDTO;
+import com.tyse.scrutiny.micro.divipol.service.api.dto.MesaVotacionDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.PuestoDetalleDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.TestigoAsignadoDTO;
 import java.time.Instant;
@@ -33,17 +36,20 @@ public class DivipolPuestoService {
 
     private final DatabaseClient databaseClient;
     private final JuradoRepository juradoRepository;
+    private final MesaVotacionRepository mesaVotacionRepository;
     private final TestigoElectoralRepository testigoRepository;
     private final TestigoPuestoRepository testigoPuestoRepository;
 
     public DivipolPuestoService(
         DatabaseClient databaseClient,
         JuradoRepository juradoRepository,
+        MesaVotacionRepository mesaVotacionRepository,
         TestigoElectoralRepository testigoRepository,
         TestigoPuestoRepository testigoPuestoRepository
     ) {
         this.databaseClient = databaseClient;
         this.juradoRepository = juradoRepository;
+        this.mesaVotacionRepository = mesaVotacionRepository;
         this.testigoRepository = testigoRepository;
         this.testigoPuestoRepository = testigoPuestoRepository;
     }
@@ -180,6 +186,14 @@ public class DivipolPuestoService {
             .then(Mono.just(ResponseEntity.noContent().<Void>build()));
     }
 
+    public Mono<ResponseEntity<Flux<MesaVotacionDTO>>> getMesasByPuesto(Integer puestoId, ServerWebExchange exchange) {
+        LOG.debug("REST request to get Mesas by puesto: {}", puestoId);
+
+        Flux<MesaVotacionDTO> mesas = mesaVotacionRepository.findByPuestoIdAndActivoTrue(puestoId).map(this::toMesaVotacionDTO);
+
+        return Mono.just(ResponseEntity.ok(mesas));
+    }
+
     // =====================================================
     // Mappers
     // =====================================================
@@ -205,6 +219,15 @@ public class DivipolPuestoService {
             dto.setAssignedDate(OffsetDateTime.ofInstant(asignacion.getAssignedDate(), ZoneOffset.UTC));
         }
         dto.setAssignedBy(asignacion.getAssignedBy());
+        return dto;
+    }
+
+    private MesaVotacionDTO toMesaVotacionDTO(MesaVotacion mesa) {
+        MesaVotacionDTO dto = new MesaVotacionDTO();
+        dto.setId(mesa.getId());
+        dto.setPuestoId(mesa.getPuestoId());
+        dto.setNumeroMesa(mesa.getNumeroMesa());
+        dto.setActivo(mesa.getActivo());
         return dto;
     }
 

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Extiende la tabla testigo_electoral con organizacion_id.
+        Un testigo es postulado por UNA organización política.
+        El campo es nullable para compatibilidad con datos existentes.
+    -->
+    <changeSet id="20260205500000-1" author="system">
+        <addColumn tableName="testigo_electoral">
+            <column name="organizacion_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_electoral"
+            baseColumnNames="organizacion_id"
+            constraintName="fk_testigo_organizacion"
+            referencedTableName="organizacion_politica"
+            referencedColumnNames="id"/>
+
+        <createIndex indexName="idx_testigo_organizacion" tableName="testigo_electoral">
+            <column name="organizacion_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_testigo_organizacion" tableName="testigo_electoral"/>
+            <dropForeignKeyConstraint baseTableName="testigo_electoral" constraintName="fk_testigo_organizacion"/>
+            <dropColumn tableName="testigo_electoral" columnName="organizacion_id"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

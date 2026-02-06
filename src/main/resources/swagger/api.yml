@@ -729,6 +729,1110 @@ paths:
               schema:
                 $ref: '#/components/schemas/TestigoPage'
 
+  # =====================================================
+  # Endpoints de Mesas de Votación
+  # =====================================================
+
+  /divipol/puestos/{puestoId}/mesas:
+    get:
+      tags:
+        - divipol-puesto
+      summary: Obtener mesas de un puesto
+      description: Lista las mesas de votación activas del puesto
+      operationId: getMesasByPuesto
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          description: ID del puesto (iddivipol)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de mesas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MesaVotacionDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  # =====================================================
+  # Endpoints de Organizaciones Políticas
+  # =====================================================
+
+  /organizaciones:
+    get:
+      tags:
+        - organizaciones
+      summary: Listar organizaciones políticas
+      description: Obtiene una lista paginada de organizaciones políticas activas
+      operationId: getAllOrganizaciones
+      parameters:
+        - name: tipo
+          in: query
+          required: false
+          description: Filtrar por tipo de organización
+          schema:
+            type: string
+            enum: [PARTIDO, MOVIMIENTO, COALICION, GRUPO_SIGNIFICATIVO, COMITE_VOTO_BLANCO]
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de organizaciones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizacionPoliticaPage'
+    post:
+      tags:
+        - organizaciones
+      summary: Crear organización política
+      operationId: createOrganizacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizacionPoliticaCreateDTO'
+      responses:
+        '201':
+          description: Organización creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizacionPoliticaDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: Ya existe una organización con ese nombre
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  /organizaciones/{id}:
+    get:
+      tags:
+        - organizaciones
+      summary: Obtener organización por ID
+      operationId: getOrganizacionById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Organización encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizacionPoliticaDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      tags:
+        - organizaciones
+      summary: Actualizar organización política
+      operationId: updateOrganizacion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizacionPoliticaUpdateDTO'
+      responses:
+        '200':
+          description: Organización actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizacionPoliticaDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - organizaciones
+      summary: Eliminar organización (soft delete)
+      operationId: deleteOrganizacion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Organización eliminada exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /organizaciones/search:
+    get:
+      tags:
+        - organizaciones
+      summary: Buscar organizaciones
+      description: Busca organizaciones por nombre o sigla
+      operationId: searchOrganizaciones
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizacionPoliticaPage'
+
+  # =====================================================
+  # Endpoints de Comisiones Escrutadoras
+  # =====================================================
+
+  /comisiones:
+    get:
+      tags:
+        - comisiones
+      summary: Listar comisiones escrutadoras
+      description: Obtiene una lista paginada de comisiones escrutadoras activas
+      operationId: getAllComisiones
+      parameters:
+        - name: tipo
+          in: query
+          required: false
+          description: Filtrar por tipo de comisión
+          schema:
+            type: string
+            enum: [AUXILIAR, MUNICIPAL, DISTRITAL, GENERAL]
+        - name: departamentoId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: municipioId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de comisiones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComisionEscrutadoraPage'
+    post:
+      tags:
+        - comisiones
+      summary: Crear comisión escrutadora
+      operationId: createComision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComisionEscrutadoraCreateDTO'
+      responses:
+        '201':
+          description: Comisión creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComisionEscrutadoraDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+
+  /comisiones/{id}:
+    get:
+      tags:
+        - comisiones
+      summary: Obtener comisión por ID
+      operationId: getComisionById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Comisión encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComisionEscrutadoraDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      tags:
+        - comisiones
+      summary: Actualizar comisión escrutadora
+      operationId: updateComision
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComisionEscrutadoraUpdateDTO'
+      responses:
+        '200':
+          description: Comisión actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComisionEscrutadoraDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - comisiones
+      summary: Eliminar comisión (soft delete)
+      operationId: deleteComision
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Comisión eliminada exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /comisiones/search:
+    get:
+      tags:
+        - comisiones
+      summary: Buscar comisiones
+      description: Busca comisiones por nombre o ubicación
+      operationId: searchComisiones
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComisionEscrutadoraPage'
+
+  # =====================================================
+  # Endpoints de Testigos en Mesas de Votación
+  # =====================================================
+
+  /divipol/puestos/{puestoId}/mesas/{mesaId}/testigos:
+    get:
+      tags:
+        - testigos-asignacion
+      summary: Obtener testigos asignados a una mesa
+      description: Lista los testigos asignados a una mesa de votación específica
+      operationId: getTestigosByMesa
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mesaId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de testigos asignados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestigoMesaDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags:
+        - testigos-asignacion
+      summary: Asignar testigo a mesa
+      description: |
+        Asigna un testigo electoral a una mesa de votación.
+        Valida reglas normativas:
+        - Máximo 1 testigo PRINCIPAL por organización por mesa
+        - Límite de remanentes según número de mesas del puesto
+        - Período de inscripción debe estar abierto
+      operationId: asignarTestigoAMesa
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mesaId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestigoMesaAsignacionDTO'
+      responses:
+        '201':
+          description: Testigo asignado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoMesaDTO'
+        '400':
+          description: Violación de regla normativa
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: El testigo ya está asignado a esta mesa
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  /divipol/puestos/{puestoId}/mesas/{mesaId}/testigos/{testigoId}:
+    delete:
+      tags:
+        - testigos-asignacion
+      summary: Desasignar testigo de mesa
+      description: Remueve la asignación de un testigo a una mesa (soft delete)
+      operationId: desasignarTestigoDeMesa
+      parameters:
+        - name: puestoId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mesaId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: testigoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Testigo desasignado exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  # =====================================================
+  # Endpoints de Testigos en Comisiones Escrutadoras
+  # =====================================================
+
+  /comisiones/{comisionId}/testigos:
+    get:
+      tags:
+        - testigos-asignacion
+      summary: Obtener testigos asignados a una comisión
+      description: Lista los testigos asignados a una comisión escrutadora
+      operationId: getTestigosByComision
+      parameters:
+        - name: comisionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de testigos asignados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestigoComisionDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags:
+        - testigos-asignacion
+      summary: Asignar testigo a comisión
+      description: |
+        Asigna un testigo electoral a una comisión escrutadora.
+        Valida regla normativa: máximo 1 testigo por organización por comisión.
+      operationId: asignarTestigoAComision
+      parameters:
+        - name: comisionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestigoComisionAsignacionDTO'
+      responses:
+        '201':
+          description: Testigo asignado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestigoComisionDTO'
+        '400':
+          description: Violación de regla normativa
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          description: El testigo ya está asignado a esta comisión
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  /comisiones/{comisionId}/testigos/{testigoId}:
+    delete:
+      tags:
+        - testigos-asignacion
+      summary: Desasignar testigo de comisión
+      description: Remueve la asignación de un testigo a una comisión (soft delete)
+      operationId: desasignarTestigoDeComision
+      parameters:
+        - name: comisionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: testigoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Testigo desasignado exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  # =====================================================
+  # Endpoints de Configuración Electoral
+  # =====================================================
+
+  /configuracion:
+    get:
+      tags:
+        - configuracion
+      summary: Obtener toda la configuración electoral
+      description: Retorna todos los parámetros de configuración activos
+      operationId: getAllConfiguracion
+      responses:
+        '200':
+          description: Lista de configuraciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfiguracionElectoralDTO'
+
+  /configuracion/{clave}:
+    get:
+      tags:
+        - configuracion
+      summary: Obtener configuración por clave
+      operationId: getConfiguracionByClave
+      parameters:
+        - name: clave
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Configuración encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfiguracionElectoralDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      tags:
+        - configuracion
+      summary: Actualizar configuración
+      operationId: updateConfiguracion
+      parameters:
+        - name: clave
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfiguracionElectoralUpdateDTO'
+      responses:
+        '200':
+          description: Configuración actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfiguracionElectoralDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /configuracion/inscripcion:
+    get:
+      tags:
+        - configuracion
+      summary: Estado del período de inscripción
+      description: Retorna si el período de inscripción de testigos está abierto y las fechas
+      operationId: getEstadoInscripcion
+      responses:
+        '200':
+          description: Estado de inscripción
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoInscripcionDTO'
+
+  # =====================================================
+  # Endpoints de Credenciales
+  # =====================================================
+
+  /credenciales:
+    get:
+      tags:
+        - credenciales
+      summary: Listar credenciales
+      description: Obtiene una lista de credenciales con filtros opcionales
+      operationId: getAllCredenciales
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PENDIENTE, EMITIDA, ENTREGADA, ANULADA]
+        - name: tipo
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [E15, E16]
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de credenciales
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredencialPage'
+    post:
+      tags:
+        - credenciales
+      summary: Crear credencial
+      description: Crea una nueva credencial para un testigo asignado
+      operationId: createCredencial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredencialCreateDTO'
+      responses:
+        '201':
+          description: Credencial creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredencialDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /credenciales/{id}:
+    get:
+      tags:
+        - credenciales
+      summary: Obtener credencial por ID
+      operationId: getCredencialById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Credencial encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredencialDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - credenciales
+      summary: Anular credencial
+      description: Anula una credencial (soft delete)
+      operationId: anularCredencial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Credencial anulada exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /credenciales/{id}/estado:
+    put:
+      tags:
+        - credenciales
+      summary: Actualizar estado de credencial
+      description: |
+        Actualiza el estado de una credencial.
+        Transiciones válidas:
+        - PENDIENTE → EMITIDA (requiere emitidoPor)
+        - EMITIDA → ENTREGADA
+        - Cualquiera → ANULADA
+      operationId: updateCredencialEstado
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredencialEstadoDTO'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredencialDTO'
+        '400':
+          description: Transición de estado inválida
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /credenciales/testigo/{testigoId}:
+    get:
+      tags:
+        - credenciales
+      summary: Obtener credenciales de un testigo
+      description: Lista todas las credenciales activas de un testigo específico
+      operationId: getCredencialesByTestigo
+      parameters:
+        - name: testigoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de credenciales del testigo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CredencialDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /credenciales/verificar/{codigo}:
+    get:
+      tags:
+        - credenciales
+      summary: Verificar credencial por código
+      description: Busca y valida una credencial por su código de verificación
+      operationId: verificarCredencial
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Credencial válida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredencialDTO'
+        '404':
+          description: Credencial no encontrada o inválida
+          content:
+            application/problem+json:
+              schema:
+                type: object
+
+  # =====================================================
+  # Endpoints de Reclamaciones
+  # =====================================================
+
+  /reclamaciones:
+    get:
+      tags:
+        - reclamaciones
+      summary: Listar reclamaciones
+      description: Obtiene una lista paginada de reclamaciones con filtros opcionales
+      operationId: getAllReclamaciones
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PRESENTADA, EN_REVISION, ACEPTADA, RECHAZADA]
+        - name: tipo
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [IRREGULARIDAD_MESA, EXCESO_VOTANTES, ERROR_ARITMETICO, ERROR_NOMBRES, FIRMAS_INSUFICIENTES, DISCREPANCIA_ACTAS, OTRO]
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista paginada de reclamaciones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacionPage'
+    post:
+      tags:
+        - reclamaciones
+      summary: Crear reclamación
+      description: |
+        Presenta una nueva reclamación electoral.
+        El testigo debe tener una asignación activa para poder presentar reclamaciones.
+      operationId: createReclamacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReclamacionCreateDTO'
+      responses:
+        '201':
+          description: Reclamación creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacionDTO'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /reclamaciones/{id}:
+    get:
+      tags:
+        - reclamaciones
+      summary: Obtener reclamación por ID
+      operationId: getReclamacionById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Reclamación encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacionDTO'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - reclamaciones
+      summary: Eliminar reclamación (soft delete)
+      operationId: deleteReclamacion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Reclamación eliminada exitosamente
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /reclamaciones/{id}/resolver:
+    put:
+      tags:
+        - reclamaciones
+      summary: Resolver reclamación
+      description: |
+        Resuelve una reclamación, actualizando su estado a ACEPTADA o RECHAZADA.
+        Requiere una resolución que explique la decisión.
+      operationId: resolverReclamacion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReclamacionResolucionDTO'
+      responses:
+        '200':
+          description: Reclamación resuelta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacionDTO'
+        '400':
+          description: Estado o resolución inválida
+          content:
+            application/problem+json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /reclamaciones/testigo/{testigoId}:
+    get:
+      tags:
+        - reclamaciones
+      summary: Obtener reclamaciones de un testigo
+      operationId: getReclamacionesByTestigo
+      parameters:
+        - name: testigoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de reclamaciones del testigo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReclamacionDTO'
+
+  /reclamaciones/mesa/{mesaId}:
+    get:
+      tags:
+        - reclamaciones
+      summary: Obtener reclamaciones de una mesa
+      operationId: getReclamacionesByMesa
+      parameters:
+        - name: mesaId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de reclamaciones de la mesa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReclamacionDTO'
+
+  /reclamaciones/comision/{comisionId}:
+    get:
+      tags:
+        - reclamaciones
+      summary: Obtener reclamaciones de una comisión
+      operationId: getReclamacionesByComision
+      parameters:
+        - name: comisionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista de reclamaciones de la comisión
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReclamacionDTO'
+
   /divipol/export/search/pdf:
     get:
       tags:
@@ -1135,6 +2239,13 @@ components:
           type: string
         email:
           type: string
+        organizacionId:
+          type: integer
+          format: int64
+          description: ID de la organización política que postula al testigo
+        organizacionNombre:
+          type: string
+          description: Nombre de la organización política
         activo:
           type: boolean
         puestosAsignados:
@@ -1168,6 +2279,10 @@ components:
         email:
           type: string
           maxLength: 100
+        organizacionId:
+          type: integer
+          format: int64
+          description: ID de la organización política que postula al testigo
 
     TestigoUpdateDTO:
       type: object
@@ -1185,6 +2300,10 @@ components:
         email:
           type: string
           maxLength: 100
+        organizacionId:
+          type: integer
+          format: int64
+          description: ID de la organización política que postula al testigo
 
     TestigoAsignadoDTO:
       type: object
@@ -1231,6 +2350,591 @@ components:
         totalPages:
           type: integer
           description: Total de páginas
+
+    # =====================================================
+    # Schemas de Asignación Testigo-Mesa
+    # =====================================================
+
+    TestigoMesaDTO:
+      type: object
+      description: Testigo asignado a una mesa de votación
+      properties:
+        id:
+          type: integer
+          format: int64
+        testigoId:
+          type: integer
+          format: int64
+        mesaId:
+          type: integer
+          format: int64
+        puestoId:
+          type: integer
+        organizacionId:
+          type: integer
+          format: int64
+        organizacionNombre:
+          type: string
+          description: Nombre de la organización política
+        tipoTestigo:
+          type: string
+          enum: [PRINCIPAL, REMANENTE]
+          description: Tipo de testigo (PRINCIPAL o REMANENTE)
+        testigoNombreCompleto:
+          type: string
+          description: Nombre completo del testigo
+        testigoNumeroDocumento:
+          type: string
+          description: Número de documento del testigo
+        assignedDate:
+          type: string
+          format: date-time
+          description: Fecha de asignación
+        assignedBy:
+          type: string
+          description: Usuario que realizó la asignación
+        activo:
+          type: boolean
+
+    TestigoMesaAsignacionDTO:
+      type: object
+      description: Datos para asignar un testigo a una mesa
+      required:
+        - testigoId
+        - tipoTestigo
+      properties:
+        testigoId:
+          type: integer
+          format: int64
+          description: ID del testigo electoral
+        organizacionId:
+          type: integer
+          format: int64
+          description: ID de la organización política (opcional, toma del testigo si no se especifica)
+        tipoTestigo:
+          type: string
+          enum: [PRINCIPAL, REMANENTE]
+          description: Tipo de testigo (PRINCIPAL o REMANENTE)
+
+    # =====================================================
+    # Schemas de Asignación Testigo-Comisión
+    # =====================================================
+
+    TestigoComisionDTO:
+      type: object
+      description: Testigo asignado a una comisión escrutadora
+      properties:
+        id:
+          type: integer
+          format: int64
+        testigoId:
+          type: integer
+          format: int64
+        comisionId:
+          type: integer
+          format: int64
+        organizacionId:
+          type: integer
+          format: int64
+        organizacionNombre:
+          type: string
+          description: Nombre de la organización política
+        tipoTestigo:
+          type: string
+          enum: [PRINCIPAL, REMANENTE]
+          description: Tipo de testigo (PRINCIPAL o REMANENTE)
+        testigoNombreCompleto:
+          type: string
+          description: Nombre completo del testigo
+        testigoNumeroDocumento:
+          type: string
+          description: Número de documento del testigo
+        assignedDate:
+          type: string
+          format: date-time
+          description: Fecha de asignación
+        assignedBy:
+          type: string
+          description: Usuario que realizó la asignación
+        activo:
+          type: boolean
+
+    TestigoComisionAsignacionDTO:
+      type: object
+      description: Datos para asignar un testigo a una comisión
+      required:
+        - testigoId
+        - tipoTestigo
+      properties:
+        testigoId:
+          type: integer
+          format: int64
+          description: ID del testigo electoral
+        organizacionId:
+          type: integer
+          format: int64
+          description: ID de la organización política (opcional, toma del testigo si no se especifica)
+        tipoTestigo:
+          type: string
+          enum: [PRINCIPAL, REMANENTE]
+          description: Tipo de testigo (PRINCIPAL o REMANENTE)
+
+    # =====================================================
+    # Schemas de Mesa de Votación
+    # =====================================================
+
+    MesaVotacionDTO:
+      type: object
+      description: Mesa de votación
+      properties:
+        id:
+          type: integer
+          format: int64
+        puestoId:
+          type: integer
+          description: ID del puesto (iddivipol)
+        numeroMesa:
+          type: integer
+          description: Número de mesa dentro del puesto
+        activo:
+          type: boolean
+
+    # =====================================================
+    # Schemas de Organización Política
+    # =====================================================
+
+    OrganizacionPoliticaDTO:
+      type: object
+      description: Organización política
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+        sigla:
+          type: string
+        tipo:
+          type: string
+          enum: [PARTIDO, MOVIMIENTO, COALICION, GRUPO_SIGNIFICATIVO, COMITE_VOTO_BLANCO]
+        activo:
+          type: boolean
+
+    OrganizacionPoliticaCreateDTO:
+      type: object
+      description: Datos para crear una organización política
+      required:
+        - nombre
+        - tipo
+      properties:
+        nombre:
+          type: string
+          maxLength: 200
+        sigla:
+          type: string
+          maxLength: 20
+        tipo:
+          type: string
+          enum: [PARTIDO, MOVIMIENTO, COALICION, GRUPO_SIGNIFICATIVO, COMITE_VOTO_BLANCO]
+
+    OrganizacionPoliticaUpdateDTO:
+      type: object
+      description: Datos para actualizar una organización política
+      properties:
+        nombre:
+          type: string
+          maxLength: 200
+        sigla:
+          type: string
+          maxLength: 20
+        tipo:
+          type: string
+          enum: [PARTIDO, MOVIMIENTO, COALICION, GRUPO_SIGNIFICATIVO, COMITE_VOTO_BLANCO]
+
+    OrganizacionPoliticaPage:
+      type: object
+      description: Página de organizaciones políticas
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizacionPoliticaDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    # =====================================================
+    # Schemas de Comisión Escrutadora
+    # =====================================================
+
+    ComisionEscrutadoraDTO:
+      type: object
+      description: Comisión escrutadora
+      properties:
+        id:
+          type: integer
+          format: int64
+        tipo:
+          type: string
+          enum: [AUXILIAR, MUNICIPAL, DISTRITAL, GENERAL]
+        nombre:
+          type: string
+        ubicacion:
+          type: string
+        departamentoId:
+          type: integer
+        municipioId:
+          type: integer
+        fechaInicio:
+          type: string
+          format: date
+        activo:
+          type: boolean
+
+    ComisionEscrutadoraCreateDTO:
+      type: object
+      description: Datos para crear una comisión escrutadora
+      required:
+        - tipo
+        - nombre
+      properties:
+        tipo:
+          type: string
+          enum: [AUXILIAR, MUNICIPAL, DISTRITAL, GENERAL]
+        nombre:
+          type: string
+          maxLength: 200
+        ubicacion:
+          type: string
+          maxLength: 300
+        departamentoId:
+          type: integer
+        municipioId:
+          type: integer
+        fechaInicio:
+          type: string
+          format: date
+
+    ComisionEscrutadoraUpdateDTO:
+      type: object
+      description: Datos para actualizar una comisión escrutadora
+      properties:
+        tipo:
+          type: string
+          enum: [AUXILIAR, MUNICIPAL, DISTRITAL, GENERAL]
+        nombre:
+          type: string
+          maxLength: 200
+        ubicacion:
+          type: string
+          maxLength: 300
+        departamentoId:
+          type: integer
+        municipioId:
+          type: integer
+        fechaInicio:
+          type: string
+          format: date
+
+    ComisionEscrutadoraPage:
+      type: object
+      description: Página de comisiones escrutadoras
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComisionEscrutadoraDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    # =====================================================
+    # Schemas de Configuración Electoral
+    # =====================================================
+
+    ConfiguracionElectoralDTO:
+      type: object
+      description: Parámetro de configuración electoral
+      properties:
+        id:
+          type: integer
+          format: int64
+        clave:
+          type: string
+        valor:
+          type: string
+        descripcion:
+          type: string
+        activo:
+          type: boolean
+
+    ConfiguracionElectoralUpdateDTO:
+      type: object
+      description: Datos para actualizar un parámetro de configuración
+      required:
+        - valor
+      properties:
+        valor:
+          type: string
+          maxLength: 500
+        descripcion:
+          type: string
+          maxLength: 500
+
+    EstadoInscripcionDTO:
+      type: object
+      description: Estado del período de inscripción de testigos
+      properties:
+        abierta:
+          type: boolean
+          description: Si el período de inscripción está abierto
+        fechaInicio:
+          type: string
+          format: date-time
+          description: Inicio del período de inscripción
+        fechaFin:
+          type: string
+          format: date-time
+          description: Fin del período de inscripción
+        fechaElecciones:
+          type: string
+          format: date
+          description: Fecha de las elecciones
+
+    # =====================================================
+    # Schemas de Credenciales
+    # =====================================================
+
+    CredencialDTO:
+      type: object
+      description: Credencial electoral
+      properties:
+        id:
+          type: integer
+          format: int64
+        testigoId:
+          type: integer
+          format: int64
+        testigoNombreCompleto:
+          type: string
+          description: Nombre completo del testigo
+        testigoNumeroDocumento:
+          type: string
+          description: Número de documento del testigo
+        tipo:
+          type: string
+          enum: [E15, E16]
+          description: Tipo de credencial (E15=mesa, E16=comisión)
+        estado:
+          type: string
+          enum: [PENDIENTE, EMITIDA, ENTREGADA, ANULADA]
+        codigoVerificacion:
+          type: string
+          description: Código único de verificación
+        testigoMesaId:
+          type: integer
+          format: int64
+          description: ID de asignación testigo-mesa (para E15)
+        testigoComisionId:
+          type: integer
+          format: int64
+          description: ID de asignación testigo-comisión (para E16)
+        asignacionDescripcion:
+          type: string
+          description: Descripción de la asignación (mesa o comisión)
+        fechaEmision:
+          type: string
+          format: date-time
+        fechaEntrega:
+          type: string
+          format: date-time
+        emitidoPor:
+          type: string
+        activo:
+          type: boolean
+
+    CredencialCreateDTO:
+      type: object
+      description: Datos para crear una credencial
+      required:
+        - testigoId
+        - tipo
+      properties:
+        testigoId:
+          type: integer
+          format: int64
+          description: ID del testigo electoral
+        tipo:
+          type: string
+          enum: [E15, E16]
+          description: Tipo de credencial
+        testigoMesaId:
+          type: integer
+          format: int64
+          description: ID de asignación testigo-mesa (requerido para E15)
+        testigoComisionId:
+          type: integer
+          format: int64
+          description: ID de asignación testigo-comisión (requerido para E16)
+
+    CredencialEstadoDTO:
+      type: object
+      description: Datos para actualizar el estado de una credencial
+      required:
+        - estado
+      properties:
+        estado:
+          type: string
+          enum: [EMITIDA, ENTREGADA, ANULADA]
+          description: Nuevo estado de la credencial
+
+    CredencialPage:
+      type: object
+      description: Página de credenciales
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredencialDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    # =====================================================
+    # Schemas de Reclamaciones
+    # =====================================================
+
+    ReclamacionDTO:
+      type: object
+      description: Reclamación electoral
+      properties:
+        id:
+          type: integer
+          format: int64
+        testigoId:
+          type: integer
+          format: int64
+        testigoNombreCompleto:
+          type: string
+          description: Nombre completo del testigo
+        testigoNumeroDocumento:
+          type: string
+          description: Número de documento del testigo
+        tipoReclamacion:
+          type: string
+          enum: [IRREGULARIDAD_MESA, EXCESO_VOTANTES, ERROR_ARITMETICO, ERROR_NOMBRES, FIRMAS_INSUFICIENTES, DISCREPANCIA_ACTAS, OTRO]
+        descripcion:
+          type: string
+        estado:
+          type: string
+          enum: [PRESENTADA, EN_REVISION, ACEPTADA, RECHAZADA]
+        mesaId:
+          type: integer
+          format: int64
+        mesaDescripcion:
+          type: string
+          description: Descripción de la mesa (puesto + número)
+        comisionId:
+          type: integer
+          format: int64
+        comisionNombre:
+          type: string
+          description: Nombre de la comisión
+        fechaPresentacion:
+          type: string
+          format: date-time
+        resolucion:
+          type: string
+          description: Texto de la resolución (si está resuelta)
+        fechaResolucion:
+          type: string
+          format: date-time
+        resueltaPor:
+          type: string
+        activo:
+          type: boolean
+
+    ReclamacionCreateDTO:
+      type: object
+      description: Datos para crear una reclamación
+      required:
+        - testigoId
+        - tipoReclamacion
+        - descripcion
+      properties:
+        testigoId:
+          type: integer
+          format: int64
+          description: ID del testigo que presenta la reclamación
+        tipoReclamacion:
+          type: string
+          enum: [IRREGULARIDAD_MESA, EXCESO_VOTANTES, ERROR_ARITMETICO, ERROR_NOMBRES, FIRMAS_INSUFICIENTES, DISCREPANCIA_ACTAS, OTRO]
+        descripcion:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: Descripción detallada de la reclamación
+        mesaId:
+          type: integer
+          format: int64
+          description: ID de la mesa relacionada (opcional)
+        comisionId:
+          type: integer
+          format: int64
+          description: ID de la comisión relacionada (opcional)
+
+    ReclamacionResolucionDTO:
+      type: object
+      description: Datos para resolver una reclamación
+      required:
+        - estado
+        - resolucion
+      properties:
+        estado:
+          type: string
+          enum: [ACEPTADA, RECHAZADA]
+          description: Resolución de la reclamación
+        resolucion:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: Texto explicativo de la resolución
+
+    ReclamacionPage:
+      type: object
+      description: Página de reclamaciones
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReclamacionDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
 
   securitySchemes:
     jwt:

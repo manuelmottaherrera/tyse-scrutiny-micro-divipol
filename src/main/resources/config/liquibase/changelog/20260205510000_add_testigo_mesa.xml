@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Tabla testigo_mesa: Asignación de testigos a mesas de votación.
+        Reemplaza el modelo testigo_puesto con asignación granular por mesa.
+
+        Reglas normativas implementadas:
+        - Un testigo puede ser PRINCIPAL o REMANENTE para una mesa
+        - Máximo 1 PRINCIPAL por organización por mesa (partial unique index)
+        - Límites de REMANENTE se validan en aplicación (dependen de número de mesas del puesto)
+    -->
+    <changeSet id="20260205510000-1" author="system">
+        <createTable tableName="testigo_mesa">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="testigo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mesa_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="puesto_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organizacion_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="tipo_testigo" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_date" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="assigned_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign keys -->
+        <addForeignKeyConstraint
+            baseTableName="testigo_mesa"
+            baseColumnNames="testigo_id"
+            constraintName="fk_testigo_mesa_testigo"
+            referencedTableName="testigo_electoral"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_mesa"
+            baseColumnNames="mesa_id"
+            constraintName="fk_testigo_mesa_mesa"
+            referencedTableName="mesa_votacion"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_mesa"
+            baseColumnNames="puesto_id"
+            constraintName="fk_testigo_mesa_puesto"
+            referencedTableName="divipol"
+            referencedColumnNames="iddivipol"/>
+
+        <addForeignKeyConstraint
+            baseTableName="testigo_mesa"
+            baseColumnNames="organizacion_id"
+            constraintName="fk_testigo_mesa_org"
+            referencedTableName="organizacion_politica"
+            referencedColumnNames="id"/>
+
+        <!-- Unique constraint: un testigo no puede asignarse 2 veces a la misma mesa -->
+        <addUniqueConstraint
+            tableName="testigo_mesa"
+            columnNames="testigo_id, mesa_id"
+            constraintName="uk_testigo_mesa"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_testigo_mesa_mesa" tableName="testigo_mesa">
+            <column name="mesa_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_mesa_puesto" tableName="testigo_mesa">
+            <column name="puesto_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_mesa_org" tableName="testigo_mesa">
+            <column name="organizacion_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_mesa_tipo" tableName="testigo_mesa">
+            <column name="tipo_testigo"/>
+        </createIndex>
+
+        <createIndex indexName="idx_testigo_mesa_activo" tableName="testigo_mesa">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_testigo_mesa_activo" tableName="testigo_mesa"/>
+            <dropIndex indexName="idx_testigo_mesa_tipo" tableName="testigo_mesa"/>
+            <dropIndex indexName="idx_testigo_mesa_org" tableName="testigo_mesa"/>
+            <dropIndex indexName="idx_testigo_mesa_puesto" tableName="testigo_mesa"/>
+            <dropIndex indexName="idx_testigo_mesa_mesa" tableName="testigo_mesa"/>
+            <dropUniqueConstraint tableName="testigo_mesa" constraintName="uk_testigo_mesa"/>
+            <dropForeignKeyConstraint baseTableName="testigo_mesa" constraintName="fk_testigo_mesa_org"/>
+            <dropForeignKeyConstraint baseTableName="testigo_mesa" constraintName="fk_testigo_mesa_puesto"/>
+            <dropForeignKeyConstraint baseTableName="testigo_mesa" constraintName="fk_testigo_mesa_mesa"/>
+            <dropForeignKeyConstraint baseTableName="testigo_mesa" constraintName="fk_testigo_mesa_testigo"/>
+            <dropTable tableName="testigo_mesa"/>
+        </rollback>
+    </changeSet>
+
+    <!--
+        Partial unique index para regla normativa:
+        Solo 1 testigo PRINCIPAL por organización por mesa (cuando activo=true)
+    -->
+    <changeSet id="20260205510000-2" author="system">
+        <sql>
+            CREATE UNIQUE INDEX uk_principal_org_mesa
+            ON testigo_mesa (mesa_id, organizacion_id)
+            WHERE tipo_testigo = 'PRINCIPAL' AND activo = true;
+        </sql>
+
+        <rollback>
+            <sql>DROP INDEX IF EXISTS uk_principal_org_mesa;</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

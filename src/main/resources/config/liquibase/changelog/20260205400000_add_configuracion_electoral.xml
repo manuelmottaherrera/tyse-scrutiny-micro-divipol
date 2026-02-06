@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ============================================ -->
+    <!-- Tabla: configuracion_electoral               -->
+    <!-- Parámetros clave-valor para configuración    -->
+    <!-- del proceso electoral (plazos, límites, etc) -->
+    <!-- ============================================ -->
+    <changeSet id="20260205400001" author="Manuel A. Motta H.">
+        <createTable tableName="configuracion_electoral">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="clave" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valor" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="descripcion" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="configuracion_electoral"
+            columnNames="clave"
+            constraintName="uk_configuracion_clave"/>
+
+        <createIndex tableName="configuracion_electoral" indexName="idx_configuracion_activo">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="configuracion_electoral" indexName="idx_configuracion_activo"/>
+            <dropUniqueConstraint tableName="configuracion_electoral" constraintName="uk_configuracion_clave"/>
+            <dropTable tableName="configuracion_electoral"/>
+        </rollback>
+    </changeSet>
+
+    <!-- ============================================ -->
+    <!-- Datos semilla de configuración               -->
+    <!-- ============================================ -->
+    <changeSet id="20260205400002" author="Manuel A. Motta H.">
+        <comment>Parámetros iniciales del proceso electoral</comment>
+
+        <insert tableName="configuracion_electoral">
+            <column name="clave" value="inscripcion_testigos_inicio"/>
+            <column name="valor" value="2026-01-01T00:00:00Z"/>
+            <column name="descripcion" value="Fecha de inicio del período de inscripción de testigos electorales"/>
+            <column name="created_by" value="system"/>
+        </insert>
+        <insert tableName="configuracion_electoral">
+            <column name="clave" value="inscripcion_testigos_fin"/>
+            <column name="valor" value="2026-12-31T23:59:59Z"/>
+            <column name="descripcion" value="Fecha de fin del período de inscripción de testigos electorales"/>
+            <column name="created_by" value="system"/>
+        </insert>
+        <insert tableName="configuracion_electoral">
+            <column name="clave" value="fecha_elecciones"/>
+            <column name="valor" value="2026-05-25"/>
+            <column name="descripcion" value="Fecha de las elecciones"/>
+            <column name="created_by" value="system"/>
+        </insert>
+        <insert tableName="configuracion_electoral">
+            <column name="clave" value="max_remanentes_menos_10_mesas"/>
+            <column name="valor" value="1"/>
+            <column name="descripcion" value="Máximo de testigos remanentes por organización en puestos con menos de 10 mesas"/>
+            <column name="created_by" value="system"/>
+        </insert>
+        <insert tableName="configuracion_electoral">
+            <column name="clave" value="max_remanentes_porcentaje"/>
+            <column name="valor" value="10"/>
+            <column name="descripcion" value="Porcentaje máximo de testigos remanentes respecto al número de mesas (para puestos con 10+ mesas)"/>
+            <column name="created_by" value="system"/>
+        </insert>
+
+        <rollback>
+            <sql>DELETE FROM configuracion_electoral WHERE created_by = 'system' AND clave IN ('inscripcion_testigos_inicio', 'inscripcion_testigos_fin', 'fecha_elecciones', 'max_remanentes_menos_10_mesas', 'max_remanentes_porcentaje');</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

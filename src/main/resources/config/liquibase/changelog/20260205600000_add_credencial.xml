@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Tabla de Credenciales Electorales.
+
+        WP6: Credencial
+
+        Tipos de credencial:
+        - E15: Credencial para testigo de mesa (Art. 108 Código Electoral)
+        - E16: Credencial para testigo de comisión escrutadora (Art. 163)
+
+        Estados:
+        - PENDIENTE: Credencial registrada pero no emitida
+        - EMITIDA: Credencial generada y lista para entrega
+        - ENTREGADA: Credencial entregada al testigo
+        - ANULADA: Credencial invalidada
+    -->
+    <changeSet id="20260205600001" author="Manuel A. Motta H.">
+        <createTable tableName="credencial">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="testigo_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tipo" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="estado" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="codigo_verificacion" type="varchar(100)">
+                <constraints nullable="true" unique="true" uniqueConstraintName="uk_credencial_codigo"/>
+            </column>
+            <column name="testigo_mesa_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="testigo_comision_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="fecha_emision" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="fecha_entrega" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+            <column name="emitido_por" type="varchar(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="activo" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <!-- Audit fields -->
+            <column name="created_by" type="varchar(50)"/>
+            <column name="created_date" type="timestamp"/>
+            <column name="last_modified_by" type="varchar(50)"/>
+            <column name="last_modified_date" type="timestamp"/>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+            baseTableName="credencial"
+            baseColumnNames="testigo_id"
+            constraintName="fk_credencial_testigo"
+            referencedTableName="testigo_electoral"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="credencial"
+            baseColumnNames="testigo_mesa_id"
+            constraintName="fk_credencial_testigo_mesa"
+            referencedTableName="testigo_mesa"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+            baseTableName="credencial"
+            baseColumnNames="testigo_comision_id"
+            constraintName="fk_credencial_testigo_comision"
+            referencedTableName="testigo_comision"
+            referencedColumnNames="id"
+            onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_credencial_testigo" tableName="credencial">
+            <column name="testigo_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_credencial_tipo" tableName="credencial">
+            <column name="tipo"/>
+        </createIndex>
+
+        <createIndex indexName="idx_credencial_estado" tableName="credencial">
+            <column name="estado"/>
+        </createIndex>
+
+        <createIndex indexName="idx_credencial_activo" tableName="credencial">
+            <column name="activo"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex indexName="idx_credencial_activo" tableName="credencial"/>
+            <dropIndex indexName="idx_credencial_estado" tableName="credencial"/>
+            <dropIndex indexName="idx_credencial_tipo" tableName="credencial"/>
+            <dropIndex indexName="idx_credencial_testigo" tableName="credencial"/>
+            <dropForeignKeyConstraint baseTableName="credencial" constraintName="fk_credencial_testigo_comision"/>
+            <dropForeignKeyConstraint baseTableName="credencial" constraintName="fk_credencial_testigo_mesa"/>
+            <dropForeignKeyConstraint baseTableName="credencial" constraintName="fk_credencial_testigo"/>
+            <dropUniqueConstraint tableName="credencial" constraintName="uk_credencial_codigo"/>
+            <dropTable tableName="credencial"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Check constraint: tipo debe corresponder con la asignación -->
+    <changeSet id="20260205600002" author="Manuel A. Motta H.">
+        <sql>
+            ALTER TABLE credencial ADD CONSTRAINT chk_credencial_tipo_asignacion
+            CHECK (
+                (tipo = 'E15' AND testigo_mesa_id IS NOT NULL AND testigo_comision_id IS NULL) OR
+                (tipo = 'E16' AND testigo_comision_id IS NOT NULL AND testigo_mesa_id IS NULL)
+            );
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE credencial DROP CONSTRAINT IF EXISTS chk_credencial_tipo_asignacion;</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
