@@ -1,5 +1,7 @@
 package com.tyse.scrutiny.micro.divipol.cucumber.stepdefs;
 
+import com.tyse.scrutiny.micro.divipol.service.api.dto.OrganizacionPoliticaDTO;
+import com.tyse.scrutiny.micro.divipol.service.api.dto.TestigoDTO;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 public abstract class StepDefs {
@@ -15,4 +17,8 @@ public abstract class StepDefs {
 
     // Content-Type de respuesta compartido
     protected static String responseContentType;
+
+    // Entidades compartidas entre step definitions
+    protected static OrganizacionPoliticaDTO sharedOrganizacion;
+    protected static TestigoDTO sharedTestigo;
 }

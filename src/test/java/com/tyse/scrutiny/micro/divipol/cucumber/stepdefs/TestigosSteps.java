@@ -3,10 +3,12 @@ package com.tyse.scrutiny.micro.divipol.cucumber.stepdefs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.tyse.scrutiny.micro.divipol.security.jwt.JwtAuthenticationTestUtils;
+import com.tyse.scrutiny.micro.divipol.service.api.dto.OrganizacionPoliticaDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.TestigoDTO;
 import com.tyse.scrutiny.micro.divipol.service.api.dto.TestigoPage;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
+import io.cucumber.java.es.Entonces;
 import io.cucumber.java.es.Y;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -68,6 +70,33 @@ public class TestigosSteps extends StepDefs {
             .getResponseBody();
     }
 
+    private TestigoDTO createTestigoWithOrganizacionHelper(String doc, Long organizacionId) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("tipoDocumento", "CC");
+        body.put("numeroDocumento", doc);
+        body.put("nombres", "TestNombre");
+        body.put("apellidos", "TestApellido");
+        body.put("organizacionId", organizacionId);
+
+        String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
+
+        return webTestClient
+            .mutate()
+            .responseTimeout(Duration.ofSeconds(10))
+            .build()
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+    }
+
     // =====================================================
     // Steps: Precondiciones (Dado)
     // =====================================================
@@ -75,6 +104,7 @@ public class TestigosSteps extends StepDefs {
     @Dado("que existe un testigo con documento {string}")
     public void queExisteUnTestigoConDocumento(String documento) {
         lastCreatedTestigo = createTestigoHelper(documento, "TestNombre", "TestApellido");
+        sharedTestigo = lastCreatedTestigo; // Compartir con otros steps
         assertThat(lastCreatedTestigo).isNotNull();
         assertThat(lastCreatedTestigo.getId()).isNotNull();
     }
@@ -82,7 +112,17 @@ public class TestigosSteps extends StepDefs {
     @Dado("que existe un testigo con documento {string} y nombre {string}")
     public void queExisteUnTestigoConDocumentoYNombre(String documento, String nombre) {
         lastCreatedTestigo = createTestigoHelper(documento, nombre, "TestApellido");
+        sharedTestigo = lastCreatedTestigo; // Compartir con otros steps
         assertThat(lastCreatedTestigo).isNotNull();
+    }
+
+    @Dado("que existe un testigo con documento {string} y organización")
+    public void queExisteUnTestigoConDocumentoYOrganizacion(String documento) {
+        assertThat(sharedOrganizacion).as("Debe existir una organización previamente creada").isNotNull();
+        lastCreatedTestigo = createTestigoWithOrganizacionHelper(documento, sharedOrganizacion.getId());
+        sharedTestigo = lastCreatedTestigo; // Compartir con otros steps
+        assertThat(lastCreatedTestigo).isNotNull();
+        assertThat(lastCreatedTestigo.getOrganizacionId()).isEqualTo(sharedOrganizacion.getId());
     }
 
     // =====================================================
@@ -111,6 +151,38 @@ public class TestigosSteps extends StepDefs {
             .exchange();
 
         // Intentar capturar el testigo creado (puede fallar si la respuesta no es 2xx)
+        try {
+            lastCreatedTestigo = actions.expectBody(TestigoDTO.class).returnResult().getResponseBody();
+        } catch (AssertionError e) {
+            lastCreatedTestigo = null;
+        }
+    }
+
+    @Cuando("creo un testigo con organización:")
+    public void creoUnTestigoConOrganizacion(io.cucumber.datatable.DataTable dataTable) {
+        assertThat(sharedOrganizacion).as("Debe existir una organización previamente creada").isNotNull();
+
+        lastCreatedTestigo = null;
+
+        Map<String, String> datos = dataTable.asMap(String.class, String.class);
+        Map<String, Object> body = new LinkedHashMap<>();
+        datos.forEach(body::put);
+        body.put("organizacionId", sharedOrganizacion.getId());
+
+        String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
+
+        actions = webTestClient
+            .mutate()
+            .responseTimeout(Duration.ofSeconds(10))
+            .build()
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .bodyValue(body)
+            .exchange();
+
+        // Intentar capturar el testigo creado
         try {
             lastCreatedTestigo = actions.expectBody(TestigoDTO.class).returnResult().getResponseBody();
         } catch (AssertionError e) {
@@ -157,6 +229,35 @@ public class TestigosSteps extends StepDefs {
         Map<String, String> datos = dataTable.asMap(String.class, String.class);
         Map<String, Object> body = new LinkedHashMap<>();
         datos.forEach(body::put);
+
+        String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
+
+        actions = webTestClient
+            .mutate()
+            .responseTimeout(Duration.ofSeconds(10))
+            .build()
+            .put()
+            .uri(TESTIGOS_API + "/{id}", lastCreatedTestigo.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .bodyValue(body)
+            .exchange();
+
+        // Intentar capturar el testigo actualizado
+        try {
+            lastCreatedTestigo = actions.expectBody(TestigoDTO.class).returnResult().getResponseBody();
+        } catch (AssertionError e) {
+            // Puede fallar si el update no es exitoso
+        }
+    }
+
+    @Cuando("actualizo el testigo con organización")
+    public void actualizoElTestigoConOrganizacion() {
+        assertThat(lastCreatedTestigo).as("Debe existir un testigo previamente creado").isNotNull();
+        assertThat(sharedOrganizacion).as("Debe existir una organización previamente creada").isNotNull();
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("organizacionId", sharedOrganizacion.getId());
 
         String token = JwtAuthenticationTestUtils.createValidToken(jwtKey);
 
@@ -286,5 +387,24 @@ public class TestigosSteps extends StepDefs {
         assertThat(lastTestigoPage).isNotNull();
         assertThat(lastTestigoPage.getContent()).isNotNull();
         assertThat(lastTestigoPage.getContent()).isNotEmpty();
+    }
+
+    @Y("el testigo creado tiene organización asignada")
+    public void elTestigoCreadoTieneOrganizacionAsignada() {
+        if (lastCreatedTestigo == null) {
+            lastCreatedTestigo = actions.expectBody(TestigoDTO.class).returnResult().getResponseBody();
+        }
+        assertThat(lastCreatedTestigo).isNotNull();
+        assertThat(lastCreatedTestigo.getOrganizacionId()).isNotNull();
+        assertThat(sharedOrganizacion).isNotNull();
+        assertThat(lastCreatedTestigo.getOrganizacionId()).isEqualTo(sharedOrganizacion.getId());
+    }
+
+    @Y("el testigo tiene organización asignada")
+    public void elTestigoTieneOrganizacionAsignada() {
+        TestigoDTO testigo = actions.expectBody(TestigoDTO.class).returnResult().getResponseBody();
+
+        assertThat(testigo).isNotNull();
+        assertThat(testigo.getOrganizacionId()).isNotNull();
     }
 }

@@ -40,6 +40,8 @@ public class DivipolCommonSteps extends StepDefs {
         actions = null;
         responseBytes = null;
         responseContentType = null;
+        sharedOrganizacion = null;
+        sharedTestigo = null;
     }
 
     // ===== STEPS COMUNES =====

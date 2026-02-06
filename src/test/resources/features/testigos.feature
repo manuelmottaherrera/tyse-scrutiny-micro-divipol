@@ -80,3 +80,34 @@ Característica: CRUD de Testigos Electorales
   Escenario: Testigo inexistente retorna 404
     Cuando consulto el testigo con ID 999999
     Entonces recibo un código de respuesta 404
+
+  # =====================================================
+  # Escenarios para organizacionId
+  # =====================================================
+
+  @happy-path
+  Escenario: Crear testigo con organización política
+    Dado que existe una organización política "Partido Testigo Create BDD"
+    Cuando creo un testigo con organización:
+      | tipoDocumento   | CC              |
+      | numeroDocumento | BDD-ORG-001     |
+      | nombres         | María           |
+      | apellidos       | González        |
+    Entonces recibo un código de respuesta 201
+    Y el testigo creado tiene organización asignada
+
+  @happy-path
+  Escenario: Actualizar organización de un testigo
+    Dado que existe una organización política "Partido Testigo Update BDD"
+    Y que existe un testigo con documento "BDD-UPDORG-001"
+    Cuando actualizo el testigo con organización
+    Entonces recibo un código de respuesta 200
+    Y el testigo creado tiene organización asignada
+
+  @happy-path
+  Escenario: Consultar testigo retorna organizacionId
+    Dado que existe una organización política "Partido Testigo Consulta BDD"
+    Y que existe un testigo con documento "BDD-GETORG-001" y organización
+    Cuando consulto el testigo por su ID
+    Entonces recibo un código de respuesta 200
+    Y el testigo tiene organización asignada
