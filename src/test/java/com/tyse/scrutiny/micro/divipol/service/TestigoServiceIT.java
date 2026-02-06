@@ -29,6 +29,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 class TestigoServiceIT {
 
     private static final String TESTIGOS_API = "/api/testigos";
+    private static final String ORGANIZACIONES_API = "/api/organizaciones";
 
     @Autowired
     private WebTestClient webTestClient;
@@ -36,6 +37,28 @@ class TestigoServiceIT {
     @BeforeEach
     void setup() {
         webTestClient = webTestClient.mutate().responseTimeout(Duration.ofSeconds(10)).build();
+    }
+
+    /**
+     * Helper: crea una organización via API y retorna el DTO.
+     */
+    private OrganizacionPoliticaDTO createOrganizacionViaApi(String nombre) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("nombre", nombre);
+        body.put("sigla", "TEST");
+        body.put("tipo", "PARTIDO");
+
+        return webTestClient
+            .post()
+            .uri(ORGANIZACIONES_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(OrganizacionPoliticaDTO.class)
+            .returnResult()
+            .getResponseBody();
     }
 
     /**
@@ -337,5 +360,166 @@ class TestigoServiceIT {
             .exchange()
             .expectStatus()
             .isBadRequest();
+    }
+
+    // =====================================================
+    // Tests para organizacionId
+    // =====================================================
+
+    @Test
+    void createTestigo_shouldSaveOrganizacionId() {
+        // Given: crear una organización primero
+        OrganizacionPoliticaDTO org = createOrganizacionViaApi("Partido Test OrgId " + System.currentTimeMillis());
+
+        // When: crear testigo con organizacionId
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("tipoDocumento", "CC");
+        body.put("numeroDocumento", "ORG-" + (System.currentTimeMillis() % 100000000));
+        body.put("nombres", "Testigo");
+        body.put("apellidos", "Con Organización");
+        body.put("organizacionId", org.getId());
+
+        TestigoDTO result = webTestClient
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // Then: organizacionId se guarda y retorna correctamente
+        assertThat(result).isNotNull();
+        assertThat(result.getOrganizacionId()).isEqualTo(org.getId());
+    }
+
+    @Test
+    void createTestigo_shouldAllowNullOrganizacionId() {
+        // When: crear testigo sin organizacionId
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("tipoDocumento", "CC");
+        body.put("numeroDocumento", "NOORG-" + (System.currentTimeMillis() % 100000000));
+        body.put("nombres", "Testigo");
+        body.put("apellidos", "Sin Organización");
+
+        TestigoDTO result = webTestClient
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // Then: testigo se crea con organizacionId null
+        assertThat(result).isNotNull();
+        assertThat(result.getOrganizacionId()).isNull();
+    }
+
+    @Test
+    void updateTestigo_shouldUpdateOrganizacionId() {
+        // Given: crear organización y testigo sin organización
+        OrganizacionPoliticaDTO org = createOrganizacionViaApi("Partido Update " + System.currentTimeMillis());
+        TestigoDTO created = createTestigoViaApi("UPDORG-" + (System.currentTimeMillis() % 100000000), "Testigo", "Actualizar Org");
+
+        // When: actualizar testigo con organizacionId
+        Map<String, Object> updateBody = new LinkedHashMap<>();
+        updateBody.put("organizacionId", org.getId());
+
+        TestigoDTO updated = webTestClient
+            .put()
+            .uri(TESTIGOS_API + "/{id}", created.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(updateBody)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // Then: organizacionId se actualiza
+        assertThat(updated).isNotNull();
+        assertThat(updated.getOrganizacionId()).isEqualTo(org.getId());
+    }
+
+    @Test
+    void reactivateTestigo_shouldUpdateOrganizacionId() {
+        // Given: crear organización y testigo, luego eliminar testigo
+        OrganizacionPoliticaDTO org = createOrganizacionViaApi("Partido Reactivar " + System.currentTimeMillis());
+        String doc = "REACT-" + (System.currentTimeMillis() % 100000000);
+        TestigoDTO created = createTestigoViaApi(doc, "Testigo", "Reactivar");
+        webTestClient.delete().uri(TESTIGOS_API + "/{id}", created.getId()).exchange().expectStatus().isNoContent();
+
+        // When: reactivar testigo con organizacionId
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("tipoDocumento", "CC");
+        body.put("numeroDocumento", doc);
+        body.put("nombres", "Testigo Reactivado");
+        body.put("apellidos", "Con Nueva Org");
+        body.put("organizacionId", org.getId());
+
+        TestigoDTO reactivated = webTestClient
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // Then: organizacionId se guarda en testigo reactivado
+        assertThat(reactivated).isNotNull();
+        assertThat(reactivated.getOrganizacionId()).isEqualTo(org.getId());
+    }
+
+    @Test
+    void getTestigoById_shouldReturnOrganizacionId() {
+        // Given: crear organización y testigo con organizacionId
+        OrganizacionPoliticaDTO org = createOrganizacionViaApi("Partido GetById " + System.currentTimeMillis());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("tipoDocumento", "CC");
+        body.put("numeroDocumento", "GETORG-" + (System.currentTimeMillis() % 100000000));
+        body.put("nombres", "Testigo");
+        body.put("apellidos", "Consultar Org");
+        body.put("organizacionId", org.getId());
+
+        TestigoDTO created = webTestClient
+            .post()
+            .uri(TESTIGOS_API)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus()
+            .isCreated()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // When: consultar testigo por ID
+        TestigoDTO result = webTestClient
+            .get()
+            .uri(TESTIGOS_API + "/{id}", created.getId())
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(TestigoDTO.class)
+            .returnResult()
+            .getResponseBody();
+
+        // Then: organizacionId se retorna
+        assertThat(result).isNotNull();
+        assertThat(result.getOrganizacionId()).isEqualTo(org.getId());
     }
 }
