@@ -116,6 +116,7 @@ public class TestigoService implements TestigosApiDelegate {
                         existing.setApellidos(dto.getApellidos());
                         existing.setTelefono(dto.getTelefono());
                         existing.setEmail(dto.getEmail());
+                        existing.setOrganizacionId(dto.getOrganizacionId());
                         existing.setLastModifiedDate(Instant.now());
                         existing.setLastModifiedBy(currentUser);
                         return testigoRepository.save(existing);
@@ -130,6 +131,7 @@ public class TestigoService implements TestigosApiDelegate {
                             testigo.setApellidos(dto.getApellidos());
                             testigo.setTelefono(dto.getTelefono());
                             testigo.setEmail(dto.getEmail());
+                            testigo.setOrganizacionId(dto.getOrganizacionId());
                             testigo.setActivo(true);
                             testigo.setCreatedDate(Instant.now());
                             testigo.setCreatedBy(currentUser);
@@ -163,6 +165,9 @@ public class TestigoService implements TestigosApiDelegate {
                     }
                     testigo.setTelefono(dto.getTelefono());
                     testigo.setEmail(dto.getEmail());
+                    if (dto.getOrganizacionId() != null) {
+                        testigo.setOrganizacionId(dto.getOrganizacionId());
+                    }
                     testigo.setLastModifiedDate(Instant.now());
                     testigo.setLastModifiedBy(currentUser);
                     return testigoRepository.save(testigo);
@@ -243,6 +248,7 @@ public class TestigoService implements TestigosApiDelegate {
                 dto.setApellidos(testigo.getApellidos());
                 dto.setTelefono(testigo.getTelefono());
                 dto.setEmail(testigo.getEmail());
+                dto.setOrganizacionId(testigo.getOrganizacionId());
                 dto.setActivo(testigo.getActivo());
                 dto.setPuestosAsignados(puestosCount.intValue());
                 return dto;
