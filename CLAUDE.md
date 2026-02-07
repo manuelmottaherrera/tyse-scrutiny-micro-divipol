@@ -448,6 +448,47 @@ The application includes Kafka producers and consumers in the `broker/` package:
 - **BlockHound** detects blocking calls in reactive code
 - Integration tests require Docker
 
+### Cucumber BDD Tests
+
+El proyecto incluye tests BDD en español ubicados en `src/test/resources/features/`:
+
+| Feature File                    | Descripción                                   | Escenarios |
+| ------------------------------- | --------------------------------------------- | ---------- |
+| `testigos.feature`              | CRUD de testigos electorales + organizacionId | 14         |
+| `organizaciones.feature`        | CRUD de organizaciones políticas              | 9          |
+| `comisiones.feature`            | CRUD de comisiones escrutadoras               | 8          |
+| `reclamaciones.feature`         | Gestión de reclamaciones electorales          | 10         |
+| `divipol-departamentos.feature` | Consulta de departamentos                     | -          |
+| `divipol-municipios.feature`    | Consulta de municipios                        | -          |
+| `divipol-zonas.feature`         | Consulta de zonas                             | -          |
+| `divipol-puestos.feature`       | Consulta de puestos                           | -          |
+| `divipol-estadisticas.feature`  | Estadísticas DIVIPOL                          | -          |
+| `divipol-exportacion.feature`   | Exportación PDF/CSV                           | -          |
+
+**Ejecutar tests Cucumber:**
+
+```bash
+# Todos los tests BDD
+./mvnw verify
+
+# Solo tests con tag específico
+./mvnw verify -Dcucumber.filter.tags="@testigos"
+
+# Solo smoke tests
+./mvnw verify -Dcucumber.filter.tags="@smoke"
+
+# Excluir tests en desarrollo
+./mvnw verify -Dcucumber.filter.tags="not @wip"
+```
+
+**Step Definitions:** `src/test/java/.../cucumber/stepdefs/`
+
+- `DivipolCommonSteps.java` - Steps compartidos (autenticación, HTTP)
+- `TestigosSteps.java` - Steps de testigos
+- `OrganizacionesSteps.java` - Steps de organizaciones
+- `ComisionesSteps.java` - Steps de comisiones
+- `ReclamacionesSteps.java` - Steps de reclamaciones
+
 ## Docker
 
 Full application stack can be containerized:
