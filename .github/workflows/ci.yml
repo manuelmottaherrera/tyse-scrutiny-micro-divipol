@@ -105,6 +105,8 @@ jobs:
         env:
           # Fix Testcontainers hostname resolution in GitHub Actions
           TESTCONTAINERS_HOST_OVERRIDE: localhost
+          # Fix Docker API version compatibility (ubuntu-latest now requires 1.44+)
+          DOCKER_API_VERSION: '1.44'
         run: |
           chmod +x mvnw
           ./mvnw clean verify \
