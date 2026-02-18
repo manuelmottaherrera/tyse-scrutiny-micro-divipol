@@ -54,11 +54,11 @@ docker compose -f src/main/docker/postgresql.yml down -v
 
 ### Required Services
 
-**IMPORTANTE**: Este es un microservicio dentro de una arquitectura más grande. Los servicios compartidos (Kafka, Consul, MinIO, MailHog) se levantan **UNA SOLA VEZ** desde `tyse-infrastructure/`, NO desde cada microservicio.
+**IMPORTANTE**: Este es un microservicio dentro de una arquitectura más grande. Los servicios compartidos (Kafka, Consul, MinIO, MailHog) se levantan **UNA SOLA VEZ** desde `tyse-scrutiny-infrastructure/`, NO desde cada microservicio.
 
 ```bash
 # 1. Levantar infraestructura compartida (desde la raíz del proyecto)
-cd ../tyse-infrastructure
+cd ../tyse-scrutiny-infrastructure
 docker compose up -d
 
 # Verificar que estén corriendo:
@@ -69,7 +69,7 @@ cd ../tyse-scrutiny-micro-divipol
 docker compose -f src/main/docker/postgresql.yml up --wait
 ```
 
-**Configuración de Kafka**: Este microservicio está configurado para conectarse a `localhost:9092` (el Kafka compartido de tyse-infrastructure).
+**Configuración de Kafka**: Este microservicio está configurado para conectarse a `localhost:9092` (el Kafka compartido de tyse-scrutiny-infrastructure).
 
 ### Testing
 
@@ -148,7 +148,7 @@ After generating sources, implement the delegate classes with `@Service` annotat
 Este microservicio es parte de una arquitectura más grande:
 
 ```
-tyse-infrastructure/ (levantar UNA vez):
+tyse-scrutiny-infrastructure/ (levantar UNA vez):
 ├── Consul (localhost:8500)         ← Service discovery
 ├── Kafka (localhost:9092)          ← Message broker
 ├── MinIO (localhost:9000/9001)     ← Object storage
