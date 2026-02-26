@@ -2071,6 +2071,9 @@ components:
       type: object
       description: Resultado de búsqueda de divipol
       properties:
+        iddivipol:
+          type: integer
+          description: ID único del registro (solo presente para tipo PUESTO)
         codigoDivipol:
           type: string
           description: Código divipol compuesto (9 dígitos)

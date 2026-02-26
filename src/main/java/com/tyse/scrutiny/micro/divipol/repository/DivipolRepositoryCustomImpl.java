@@ -255,6 +255,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
      */
     private static final String SEARCH_SELECT =
         "SELECT " +
+        "  iddivipol, " +
         "  LPAD(coddepto::TEXT, 2, '0') || LPAD(COALESCE(codmipio, 0)::TEXT, 3, '0') || " +
         "    LPAD(COALESCE(codzona, 0)::TEXT, 2, '0') || LPAD(COALESCE(codpuesto, '00'), 2, '0') AS codigo_divipol, " +
         "  CASE clase " +
@@ -285,6 +286,7 @@ public class DivipolRepositoryCustomImpl implements DivipolRepositoryCustom {
         }
 
         return new DivipolSearchResultDTO()
+            .iddivipol(row.get("iddivipol", Integer.class))
             .codigoDivipol(row.get("codigo_divipol", String.class))
             .tipo(tipo)
             .coddepto(row.get("coddepto", Integer.class))
