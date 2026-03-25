@@ -88,8 +88,11 @@ jobs:
           echo "🏷️  Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.IMAGE_TAG }}"
           echo "🏷️  Tags: ${{ steps.meta.outputs.IMAGE_TAG }}, ${{ steps.meta.outputs.IMAGE_TAG }}-${{ steps.meta.outputs.SHORT_SHA }}, latest"
 
-      - name: Notify Gateway for deployment
-        if: steps.meta.outputs.BRANCH == 'develop'
-        run: |
-          echo "🚀 Divipol image ready for deployment"
-          echo "To deploy, run the deployment workflow in the Gateway repository"
+      - name: Trigger dev deployment
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPLOY_PAT }}
+          repository: manuelmottaherrera/tyse-scrutiny-infrastructure
+          event-type: deploy-dev
+          client-payload: '{"service": "divipol", "source": "divipol", "sha": "${{ github.sha }}"}'
