@@ -58,7 +58,7 @@
     "prettier-plugin-packagejson": "2.5.11"
   },
   "engines": {
-    "node": ">=22.15.0"
+    "node": ">=22.22.2"
   },
   "cacheDirectories": [
     "node_modules"
