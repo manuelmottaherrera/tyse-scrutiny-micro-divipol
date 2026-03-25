@@ -134,13 +134,13 @@ Comunicación entre servicios vía Consul (discovery) y Kafka (mensajería, topi
 
 ### Perfiles Spring
 
-| Perfil | Uso | Servicios |
-|--------|-----|-----------|
-| `dev` (default) | Desarrollo local | localhost (Consul :8500, DB :5433, Kafka :9092) |
-| `local-dev` | Servidor remoto de desarrollo | Apunta a 192.168.0.58 (Consul :8510, DB :5433, Kafka :9102) |
-| `docker-dev` | Dentro de Docker Compose | Hostnames Docker (consul, postgres-divipol, kafka) |
-| `prod` | Producción | Optimizado, logging mínimo |
-| `no-liquibase` | Deshabilitar migraciones | Combinar con otros perfiles |
+| Perfil          | Uso                           | Servicios                                                   |
+| --------------- | ----------------------------- | ----------------------------------------------------------- |
+| `dev` (default) | Desarrollo local              | localhost (Consul :8500, DB :5433, Kafka :9092)             |
+| `local-dev`     | Servidor remoto de desarrollo | Apunta a 192.168.0.58 (Consul :8510, DB :5433, Kafka :9102) |
+| `docker-dev`    | Dentro de Docker Compose      | Hostnames Docker (consul, postgres-divipol, kafka)          |
+| `prod`          | Producción                    | Optimizado, logging mínimo                                  |
+| `no-liquibase`  | Deshabilitar migraciones      | Combinar con otros perfiles                                 |
 
 ```bash
 ./mvnw -Dspring.profiles.active=local-dev
@@ -167,6 +167,7 @@ configuracion_electoral (parámetros de plazos y límites)
 ```
 
 **Reglas normativas:**
+
 1. Máximo 1 testigo principal por organización por mesa
 2. Remanentes: <10 mesas = máx 1 por org; ≥10 mesas = hasta 10% del total
 3. Período de inscripción validado contra `configuracion_electoral`
@@ -195,6 +196,7 @@ Features en español en `src/test/resources/features/`. Step definitions en `src
 **Convención de branches:** `feature/<nombre>-<descripcion>`, `hotfix/<descripcion>`.
 
 **Convención de commits:**
+
 ```
 type(scope): descripción breve
 
